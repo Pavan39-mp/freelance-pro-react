@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+
+# Production build artifacts
+dist/
+
+# Local env files
+.env
+backend/.env
+.env*.local
+
+# System/IDE config files
+.DS_Store
+.vscode/
+.idea/
+
+# Backend uploads
+backend/uploads/*
+!backend/uploads/.gitkeep
