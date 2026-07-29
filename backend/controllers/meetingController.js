@@ -5,7 +5,7 @@ import User from '../models/User.js';
 import { sendEmail } from '../services/emailService.js';
 
 const participantFilter = (user) => user.role === 'client'
-    ? { clientUser: user._id }
+    ? { $or: [{ clientUser: user._id }, { clientEmail: user.email }] }
     : { $or: [{ freelancer: user._id }, { user: user._id }] };
 
 const isValidMeetingUrl = (value) => {
