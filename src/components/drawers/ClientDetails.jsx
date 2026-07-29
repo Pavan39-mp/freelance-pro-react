@@ -139,7 +139,7 @@ const ClientDetails = ({ client, isOpen, onClose }) => {
 
             <section>
               <h3 className="font-label-caps text-label-caps text-on-surface-variant tracking-widest mb-4">Project Summary</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="p-4 bg-surface-container-low border border-outline-variant/10 rounded-2xl flex flex-col items-center text-center">
                   <p className="text-display-sm text-on-surface mb-1">{clientProjects.length}</p>
                   <p className="text-[10px] font-bold text-on-surface-variant tracking-wider">Total Projects</p>
@@ -219,7 +219,7 @@ const ClientDetails = ({ client, isOpen, onClose }) => {
             <section>
               <h3 className="font-label-caps text-label-caps text-on-surface-variant tracking-widest mb-4">Invoice & Billing</h3>
               <div className="p-4 bg-surface-container-low border border-outline-variant/10 rounded-2xl space-y-4">
-                <div className="grid grid-cols-3 gap-3 border-b border-outline-variant/10 pb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-b border-outline-variant/10 pb-4">
                   <div>
                     <p className="text-[10px] font-bold text-on-surface-variant mb-1">Total Billed</p>
                     <p className="text-headline-sm font-bold text-on-surface">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(billingData?.totalBilled || client.lifetimeBilling || 0)}</p>
@@ -271,7 +271,7 @@ const ClientDetails = ({ client, isOpen, onClose }) => {
 
           </div>
 
-          <div className="p-4 border-t border-outline-variant/10 bg-surface-container-high shrink-0 grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="p-4 border-t border-outline-variant/10 bg-surface-container-high shrink-0 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <button onClick={() => setCurrentView('schedule')} className="py-2.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl font-label-caps text-[11px] font-bold transition-colors">
               Schedule Meeting
             </button>

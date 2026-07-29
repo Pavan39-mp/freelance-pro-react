@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Briefcase, ClipboardList, BarChart2 } from 'lucide-react';
+import { LayoutDashboard, Users, Briefcase, ClipboardList, BarChart2, MessageSquare } from 'lucide-react';
 
 const MobileBottomNav = () => {
     const [isVisible, setIsVisible] = useState(true);
@@ -28,6 +28,7 @@ const MobileBottomNav = () => {
         { name: 'Clients', path: '/freelancer/clients', icon: Users },
         { name: 'Projects', path: '/freelancer/projects', icon: Briefcase },
         { name: 'Tasks', path: '/freelancer/tasks', icon: ClipboardList },
+        { name: 'Messages', path: '/freelancer/messages', icon: MessageSquare },
         { name: 'Stats', path: '/freelancer/analytics', icon: BarChart2 },
     ];
 

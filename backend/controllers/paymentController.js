@@ -63,7 +63,10 @@ export const createPayment = async (req, res) => {
 // @access  Private
 export const getPayments = async (req, res) => {
     try {
-        const payments = await Payment.find({ createdBy: req.user._id })
+        const query = req.user.role === 'freelancer'
+            ? { invoice: { $in: (await Invoice.find({ freelancer: req.user._id }).select('_id')).map(invoice => invoice._id) } }
+            : { createdBy: req.user._id };
+        const payments = await Payment.find(query)
             .populate('client', 'fullName email company')
             .populate('invoice', 'invoiceNumber status total')
             .populate('project', 'name')
@@ -79,7 +82,12 @@ export const getPayments = async (req, res) => {
 // @access  Private
 export const getInvoicePayments = async (req, res) => {
     try {
-        const payments = await Payment.find({ invoice: req.params.invoiceId, createdBy: req.user._id })
+        const invoice = await Invoice.findOne(req.user.role === 'freelancer'
+            ? { _id: req.params.invoiceId, freelancer: req.user._id }
+            : { _id: req.params.invoiceId, createdBy: req.user._id });
+        if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
+
+        const payments = await Payment.find({ invoice: invoice._id })
             .populate('client', 'fullName')
             .sort({ paymentDate: -1 });
         res.json(payments);

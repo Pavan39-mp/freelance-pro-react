@@ -37,7 +37,7 @@ const NotificationDropdown = () => {
       </button>
       
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 -right-2 sm:right-0 bg-surface-container-high border border-outline-variant/20 rounded-2xl shadow-2xl z-50 overflow-hidden cursor-default animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="fixed left-3 right-3 top-[72px] mt-3 w-auto max-w-none sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 bg-surface-container-high border border-outline-variant/20 rounded-2xl shadow-2xl z-50 overflow-hidden cursor-default animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="p-4 border-b border-outline-variant/10 flex justify-between items-center">
             <h4 className="font-label-caps text-label-caps text-on-surface">Notifications</h4>
             <span className="text-[10px] bg-primary/20 text-primary px-2 py-1 rounded-full">{unreadCount} New</span>

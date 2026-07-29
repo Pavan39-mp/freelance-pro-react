@@ -56,7 +56,7 @@ const SearchBar = () => {
 
   return (
     <div className="relative w-full max-w-md hidden md:block" ref={searchRef}>
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant w-5 h-5" />
+      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant w-5 h-5 pointer-events-none" />
       <input
         id="search-input"
         className="w-full bg-surface-container-high/50 border-none rounded-full py-2 pl-10 pr-4 text-body-sm focus:ring-1 focus:ring-primary/50 text-on-surface"

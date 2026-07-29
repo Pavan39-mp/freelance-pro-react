@@ -43,7 +43,7 @@ const ProfileDropdown = () => {
           <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">{user.role}</p>
         </button>
         <button
-          onClick={() => handleNavigation(user?.role === 'client' ? '/client/settings' : '/freelancer/profile')}
+          onClick={() => handleNavigation(user?.role === 'client' ? '/client/profile' : '/freelancer/profile')}
           className="hover:opacity-80 transition-opacity focus:outline-none"
         >
           <img
@@ -63,7 +63,7 @@ const ProfileDropdown = () => {
 
           <div className="py-2">
             <button
-              onClick={() => handleNavigation(user?.role === 'client' ? '/client/settings' : '/freelancer/profile')}
+              onClick={() => handleNavigation(user?.role === 'client' ? '/client/profile' : '/freelancer/profile')}
               className="w-full text-left px-4 py-2 text-body-sm text-on-surface hover:bg-surface-variant/50 transition-colors flex items-center gap-3"
             >
               <User className="w-4 h-4 text-on-surface-variant" />

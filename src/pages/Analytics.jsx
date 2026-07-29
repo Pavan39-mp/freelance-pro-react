@@ -52,9 +52,11 @@ const Analytics = () => {
     else if (filterType === 'Last 90 Days') { startDate = new Date(now); startDate.setDate(startDate.getDate() - 89); startDate.setHours(0, 0, 0, 0); }
     else if (filterType === 'Last 12 Months') { startDate = new Date(now); startDate.setFullYear(startDate.getFullYear() - 1); startDate.setHours(0, 0, 0, 0); }
     else if (filterType === 'Custom Date Range') {
-      if (customStart) startDate = new Date(customStart + 'T00:00:00');
-      if (customEnd) endDate = new Date(customEnd + 'T23:59:59');
+      if (!customStart || !customEnd) return;
+      startDate = new Date(customStart + 'T00:00:00');
+      endDate = new Date(customEnd + 'T23:59:59.999');
     }
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime()) || startDate > endDate) return;
     loadRevenueSummary({
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString()
@@ -346,13 +348,13 @@ const Analytics = () => {
         </div>
 
         {/* Date Range Filter */}
-        <div className="flex flex-col items-end gap-2 relative z-30 no-print">
-          <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant pointer-events-none" />
+        <div className="flex w-full md:w-auto flex-col items-stretch md:items-end gap-2 relative z-30 no-print">
+          <div className="relative w-full md:w-auto">
+            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant pointer-events-none" />
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="bg-surface-container-high border border-outline-variant/20 rounded-xl text-body-sm font-bold text-on-surface py-2.5 pl-10 pr-10 focus:ring-1 focus:ring-primary focus:outline-none appearance-none cursor-pointer shadow-sm hover:shadow transition-all"
+              className="w-full md:w-auto bg-surface-container-high border border-outline-variant/20 rounded-xl text-body-sm font-bold text-on-surface py-2.5 pl-10 pr-10 focus:ring-1 focus:ring-primary focus:outline-none appearance-none cursor-pointer shadow-sm hover:shadow transition-all"
               style={{
                 backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23948e9c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
                 backgroundRepeat: 'no-repeat',
@@ -365,7 +367,7 @@ const Analytics = () => {
           </div>
 
           {filterType === 'Custom Date Range' && (
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-2 bg-surface-container-high p-4 rounded-xl border border-outline-variant/20 shadow-2xl absolute top-full right-0 z-30 animate-in fade-in slide-in-from-top-2">
+            <div className="flex w-full max-w-full flex-col sm:w-auto sm:max-w-none sm:flex-row items-stretch sm:items-center gap-3 mt-2 bg-surface-container-high p-4 rounded-xl border border-outline-variant/20 shadow-2xl absolute top-full right-0 z-30 animate-in fade-in slide-in-from-top-2">
               <div className="flex flex-col">
                 <label className="text-[10px] text-on-surface-variant tracking-widest font-bold ml-1 mb-1.5">Start Date</label>
                 <input
@@ -627,7 +629,7 @@ const Analytics = () => {
             {/* Search query input */}
             {reportType !== 'productivity' && (
               <div className="relative">
-                <Search className="absolute left-3 top-2.5 w-4 h-4 text-on-surface-variant" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant pointer-events-none" />
                 <input
                   type="text"
                   placeholder={`Search ${reportType}...`}

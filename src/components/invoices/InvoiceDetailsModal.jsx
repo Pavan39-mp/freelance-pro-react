@@ -43,7 +43,7 @@ const InvoiceDetailsModal = ({ invoice, onClose, onDownload }) => {
                         {invoice.terms && <div><p className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-1">Terms</p><p className="text-body-sm text-on-surface whitespace-pre-wrap break-words">{invoice.terms}</p></div>}
                     </div>}
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-outline-variant/10 text-body-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-4 border-t border-outline-variant/10 text-body-sm">
                         <div><p className="text-[10px] text-on-surface-variant">Total</p><p className="font-bold text-on-surface">{INR(invoice.total)}</p></div>
                         <div><p className="text-[10px] text-on-surface-variant">Paid</p><p className="font-bold text-tertiary">{INR(invoice.paidAmount)}</p></div>
                         <div><p className="text-[10px] text-on-surface-variant">Outstanding</p><p className="font-bold text-error">{INR(invoice.total - (invoice.paidAmount || 0))}</p></div>

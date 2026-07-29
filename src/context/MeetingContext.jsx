@@ -25,7 +25,7 @@ export const MeetingProvider = ({ children }) => {
   const { addNotification } = useNotifications() || {};
 
   const loadMeetings = async () => {
-    if (!user || user.role === 'client') {
+    if (!user) {
       setMeetings([]);
       setIsLoaded(true);
       return;
@@ -130,6 +130,7 @@ export const MeetingProvider = ({ children }) => {
       }
     } catch (err) {
       console.error('Error scheduling meeting:', err.message);
+      throw err;
     }
   };
 

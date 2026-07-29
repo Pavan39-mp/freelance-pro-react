@@ -73,7 +73,7 @@ export const TaskProvider = ({ children }) => {
 
       const mapped = items.map(t => {
         const proj = t.projectId || {};
-        const cl = proj.client || {};
+        const cl = proj.platformClient || proj.client || {};
         return {
           ...t,
           id: t._id || t.id,
@@ -97,7 +97,7 @@ export const TaskProvider = ({ children }) => {
     try {
       const newTask = await taskService.addTask(taskData);
       const proj = newTask.projectId || {};
-      const cl = proj.client || {};
+      const cl = proj.platformClient || proj.client || {};
       const mapped = {
         ...newTask,
         id: newTask._id || newTask.id,
@@ -115,7 +115,7 @@ export const TaskProvider = ({ children }) => {
     try {
       const updated = await taskService.updateTask(id, taskData);
       const proj = updated.projectId || {};
-      const cl = proj.client || {};
+      const cl = proj.platformClient || proj.client || {};
       const mapped = {
         ...updated,
         id: updated._id || updated.id,
@@ -135,7 +135,7 @@ export const TaskProvider = ({ children }) => {
         newProgress, hoursWorked, summary, isBlocked, blockReason
       });
       const proj = updated.projectId || {};
-      const cl = proj.client || {};
+      const cl = proj.platformClient || proj.client || {};
       const mapped = {
         ...updated,
         id: updated._id || updated.id,
@@ -153,7 +153,7 @@ export const TaskProvider = ({ children }) => {
     try {
       const updated = await taskService.undoLastProgress(id);
       const proj = updated.projectId || {};
-      const cl = proj.client || {};
+      const cl = proj.platformClient || proj.client || {};
       const mapped = {
         ...updated,
         id: updated._id || updated.id,
@@ -180,7 +180,7 @@ export const TaskProvider = ({ children }) => {
     try {
       const updated = await taskService.addComment(taskId, text);
       const proj = updated.projectId || {};
-      const cl = proj.client || {};
+      const cl = proj.platformClient || proj.client || {};
       const mapped = {
         ...updated,
         id: updated._id || updated.id,
@@ -198,7 +198,7 @@ export const TaskProvider = ({ children }) => {
     try {
       const updated = await taskService.editComment(taskId, commentId, text);
       const proj = updated.projectId || {};
-      const cl = proj.client || {};
+      const cl = proj.platformClient || proj.client || {};
       const mapped = {
         ...updated,
         id: updated._id || updated.id,
@@ -216,7 +216,7 @@ export const TaskProvider = ({ children }) => {
     try {
       const updated = await taskService.deleteComment(taskId, commentId);
       const proj = updated.projectId || {};
-      const cl = proj.client || {};
+      const cl = proj.platformClient || proj.client || {};
       const mapped = {
         ...updated,
         id: updated._id || updated.id,
@@ -234,7 +234,7 @@ export const TaskProvider = ({ children }) => {
     try {
       const updated = await taskService.addAttachment(taskId, fileData);
       const proj = updated.projectId || {};
-      const cl = proj.client || {};
+      const cl = proj.platformClient || proj.client || {};
       const mapped = {
         ...updated,
         id: updated._id || updated.id,

@@ -18,11 +18,10 @@ export const sendEmail = async ({ to, subject, html }) => {
             html,
         });
 
-        console.log(`[EMAIL DISPATCH] Sent to ${to} (MessageID: ${info.messageId})`);
+        console.log('[EMAIL DISPATCH] Message sent successfully');
         return { success: true, messageId: info.messageId };
     } catch (error) {
         console.error(`[EMAIL FAIL] Could not dispatch email: ${error.message}`);
-        // Return mock success as fallback so environment settings don't block workspace logic
-        return { success: true, mocked: true, error: error.message };
+        return { success: false, error: error.message };
     }
 };

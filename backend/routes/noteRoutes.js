@@ -10,7 +10,7 @@ import { protect, authorizeRoles } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.use(protect);
+router.use(protect, authorizeRoles('freelancer'));
 
 router.route('/')
     .get(getNotes)

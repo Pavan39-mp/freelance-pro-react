@@ -1,7 +1,16 @@
 import api from './api';
 
 export const getInvoices = (params = {}) => api.get('/invoices', { params });
-export const getRevenueSummary = (params = {}) => api.get('/invoices/summary', { params });
+export const getRevenueSummary = (params = {}) => {
+    const safeParams = {};
+    for (const key of ['startDate', 'endDate']) {
+        const value = params[key];
+        if (value === undefined || value === null || value === '') continue;
+        const date = value instanceof Date ? value : new Date(value);
+        if (!Number.isNaN(date.getTime())) safeParams[key] = date.toISOString();
+    }
+    return api.get('/invoices/summary', { params: safeParams });
+};
 export const getInvoiceById = (id) => api.get(`/invoices/${id}`);
 export const getClientInvoices = (clientId) => api.get(`/invoices/client/${clientId}`);
 export const createInvoice = (data) => api.post('/invoices', data);

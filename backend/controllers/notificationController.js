@@ -2,21 +2,38 @@ import Notification from '../models/Notification.js';
 import Project from '../models/Project.js';
 import Task from '../models/Task.js';
 
+const populateNotification = (query) => query
+    .populate('sender', 'fullName avatar')
+    .populate({
+        path: 'meeting',
+        select: 'title client clientName clientUser project provider joinUrl date time timeZone duration agenda notes status freelancer',
+        populate: [
+            { path: 'freelancer', select: 'fullName avatar' },
+            { path: 'clientUser', select: 'fullName avatar' }
+        ]
+    });
+
 const checkUpcomingDeadlines = async (userId) => {
     try {
         const threeDaysFromNow = new Date();
         threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
         const now = new Date();
 
-        // 1. Check projects
-        const upcomingProjects = await Project.find({
+        const isUpcoming = (dateValue) => {
+            const date = new Date(dateValue);
+            return !Number.isNaN(date.getTime()) && date >= now && date <= threeDaysFromNow;
+        };
+
+        // Project and task deadlines are stored as ISO-compatible strings.
+        // Filter them as dates after retrieval instead of issuing an invalid
+        // MongoDB date-range query against a String schema field.
+        const upcomingProjects = (await Project.find({
             createdBy: userId,
-            status: { $ne: 'Completed' },
-            dueDate: { $gte: now, $lte: threeDaysFromNow }
-        });
+            status: { $ne: 'Completed' }
+        })).filter(project => isUpcoming(project.dueDate));
 
         for (const project of upcomingProjects) {
-            const dateStr = project.dueDate.toDateString();
+            const dateStr = new Date(project.dueDate).toDateString();
             const exists = await Notification.findOne({
                 user: userId,
                 type: 'project',
@@ -29,21 +46,18 @@ const checkUpcomingDeadlines = async (userId) => {
                     user: userId,
                     type: 'project',
                     title: 'Project Deadline Approaching',
-                    message: `The project "${project.name}" is due on ${dateStr}.`,
-                    user: userId
+                    message: `The project "${project.name}" is due on ${dateStr}.`
                 });
             }
         }
 
-        // 2. Check tasks
-        const upcomingTasks = await Task.find({
+        const upcomingTasks = (await Task.find({
             createdBy: userId,
-            status: { $ne: 'Completed' },
-            deadline: { $gte: now, $lte: threeDaysFromNow }
-        });
+            status: { $ne: 'Completed' }
+        })).filter(task => isUpcoming(task.deadline));
 
         for (const task of upcomingTasks) {
-            const dateStr = task.deadline.toDateString();
+            const dateStr = new Date(task.deadline).toDateString();
             const exists = await Notification.findOne({
                 user: userId,
                 type: 'task',
@@ -56,8 +70,7 @@ const checkUpcomingDeadlines = async (userId) => {
                     user: userId,
                     type: 'task',
                     title: 'Task Deadline Approaching',
-                    message: `The task "${task.title}" is due on ${dateStr}.`,
-                    user: userId
+                    message: `The task "${task.title}" is due on ${dateStr}.`
                 });
             }
         }
@@ -97,7 +110,7 @@ export const getNotifications = async (req, res, next) => {
         if (mustPaginate) {
             const totalCount = await Notification.countDocuments(query);
             const totalPages = Math.ceil(totalCount / limitNum);
-            const notifications = await Notification.find(query)
+            const notifications = await populateNotification(Notification.find(query))
                 .sort(sortQuery)
                 .skip((pageNum - 1) * limitNum)
                 .limit(limitNum);
@@ -114,7 +127,7 @@ export const getNotifications = async (req, res, next) => {
                 }
             });
         } else {
-            const notifications = await Notification.find(query).sort(sortQuery);
+            const notifications = await populateNotification(Notification.find(query)).sort(sortQuery);
             res.json({
                 success: true,
                 message: 'Notifications retrieved successfully',
@@ -138,7 +151,8 @@ export const markNotificationRead = async (req, res, next) => {
         }
 
         notification.read = true;
-        const updated = await notification.save();
+        await notification.save();
+        const updated = await populateNotification(Notification.findById(notification._id));
 
         res.json({
             success: true,
@@ -157,7 +171,7 @@ export const markAllNotificationsRead = async (req, res, next) => {
     try {
         await Notification.updateMany({ user: req.user._id, read: false }, { read: true });
 
-        const notifications = await Notification.find({ user: req.user._id }).sort({ createdAt: -1 });
+        const notifications = await populateNotification(Notification.find({ user: req.user._id })).sort({ createdAt: -1 });
         res.json({
             success: true,
             message: 'All notifications marked as read',

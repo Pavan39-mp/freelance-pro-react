@@ -3,21 +3,27 @@ import Task from '../models/Task.js';
 import Project from '../models/Project.js';
 
 // Helper to update task worked hours
-const syncTaskWorkedHours = async (taskId) => {
-    const sessions = await TimerSession.find({ taskId });
+const syncTaskWorkedHours = async (taskId, userId) => {
+    const sessions = await TimerSession.find({ taskId, createdBy: userId });
     const totalSeconds = sessions.reduce((acc, sess) => acc + (sess.duration || 0), 0);
     const totalHours = Number((totalSeconds / 3600).toFixed(2));
     
-    await Task.findByIdAndUpdate(taskId, { workedHours: totalHours });
+    await Task.findOneAndUpdate({ _id: taskId, createdBy: userId }, { workedHours: totalHours });
     return totalHours;
 };
+
+const getOwnedTask = (taskId, userId) => Task.findOne({ _id: taskId, createdBy: userId }).select('_id projectId');
 
 // @desc    Start a timer session
 // @route   POST /api/timer/start
 // @access  Private
 export const startTimer = async (req, res, next) => {
     try {
-        const { taskId, projectId } = req.body;
+        const { taskId } = req.body;
+        const task = await getOwnedTask(taskId, req.user._id);
+        if (!task) {
+            return res.status(403).json({ success: false, message: 'Task not found or access denied' });
+        }
 
         // Check if there's already an active timer for this user
         const activeTimer = await TimerSession.findOne({ createdBy: req.user._id, isActive: true });
@@ -27,12 +33,12 @@ export const startTimer = async (req, res, next) => {
             activeTimer.duration = Math.floor((activeTimer.endTime - activeTimer.startTime) / 1000);
             activeTimer.isActive = false;
             await activeTimer.save();
-            await syncTaskWorkedHours(activeTimer.taskId);
+            await syncTaskWorkedHours(activeTimer.taskId, req.user._id);
         }
 
         const session = await TimerSession.create({
             taskId,
-            projectId,
+            projectId: task.projectId,
             createdBy: req.user._id,
             startTime: new Date(),
             isActive: true
@@ -65,7 +71,7 @@ export const stopTimer = async (req, res, next) => {
         session.isActive = false;
         
         await session.save();
-        await syncTaskWorkedHours(session.taskId);
+        await syncTaskWorkedHours(session.taskId, req.user._id);
 
         res.status(200).json(session);
     } catch (error) {
@@ -78,14 +84,22 @@ export const stopTimer = async (req, res, next) => {
 // @access  Private
 export const addManualEntry = async (req, res, next) => {
     try {
-        const { taskId, projectId, date, durationSeconds, note } = req.body;
+        const { taskId, date, durationSeconds, note } = req.body;
+        const task = await getOwnedTask(taskId, req.user._id);
+        if (!task) {
+            return res.status(403).json({ success: false, message: 'Task not found or access denied' });
+        }
+
+        if (!Number.isFinite(Number(durationSeconds)) || Number(durationSeconds) <= 0 || Number(durationSeconds) > 24 * 60 * 60) {
+            return res.status(400).json({ success: false, message: 'Duration must be between 1 second and 24 hours' });
+        }
 
         const startTime = new Date(date);
         const endTime = new Date(startTime.getTime() + durationSeconds * 1000);
 
         const session = await TimerSession.create({
             taskId,
-            projectId,
+            projectId: task.projectId,
             createdBy: req.user._id,
             startTime,
             endTime,
@@ -95,7 +109,7 @@ export const addManualEntry = async (req, res, next) => {
             isActive: false
         });
 
-        await syncTaskWorkedHours(taskId);
+        await syncTaskWorkedHours(taskId, req.user._id);
 
         res.status(201).json(session);
     } catch (error) {
@@ -122,7 +136,7 @@ export const editEntry = async (req, res, next) => {
         if (note !== undefined) session.note = note;
 
         await session.save();
-        await syncTaskWorkedHours(session.taskId);
+        await syncTaskWorkedHours(session.taskId, req.user._id);
 
         res.status(200).json(session);
     } catch (error) {
@@ -144,7 +158,7 @@ export const deleteEntry = async (req, res, next) => {
         const taskId = session.taskId;
         await TimerSession.deleteOne({ _id: req.params.id });
         
-        await syncTaskWorkedHours(taskId);
+        await syncTaskWorkedHours(taskId, req.user._id);
 
         res.status(200).json({ success: true });
     } catch (error) {
@@ -157,6 +171,10 @@ export const deleteEntry = async (req, res, next) => {
 // @access  Private
 export const getTaskSessions = async (req, res, next) => {
     try {
+        const task = await getOwnedTask(req.params.taskId, req.user._id);
+        if (!task) {
+            return res.status(403).json({ success: false, message: 'Task not found or access denied' });
+        }
         const sessions = await TimerSession.find({ 
             taskId: req.params.taskId, 
             createdBy: req.user._id 

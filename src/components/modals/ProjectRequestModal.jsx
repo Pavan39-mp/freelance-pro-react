@@ -77,7 +77,7 @@ const ProjectRequestModal = ({ isOpen, onClose, onSubmit, freelancerName }) => {
                         <div>
                             <label className="block text-label-md font-label-md text-on-surface-variant mb-1">Budget (₹) <span className="text-error">*</span></label>
                             <div className="relative">
-                                <span className="absolute left-4 top-3 text-on-surface-variant">₹</span>
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">₹</span>
                                 <input
                                     type="number"
                                     name="budget"

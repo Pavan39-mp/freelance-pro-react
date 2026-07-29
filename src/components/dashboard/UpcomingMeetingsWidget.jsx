@@ -69,7 +69,7 @@ const UpcomingMeetingsWidget = ({ onViewMeeting }) => {
                 )}
               </div>
 
-              <p className="text-on-surface-variant text-body-sm truncate mb-3">{meeting.client} • {meeting.provider || meeting.type || 'Google Meet'}</p>
+              <p className="text-on-surface-variant text-body-sm truncate mb-3">{meeting.clientName || (typeof meeting.client === 'string' ? meeting.client : meeting.clientUser?.fullName) || 'Client'} • {meeting.provider || meeting.type || 'Google Meet'}</p>
 
               <div className="flex items-center justify-between">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-[11px] text-on-surface-variant font-medium">

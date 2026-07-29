@@ -129,7 +129,7 @@ const CreateInvoiceForm = ({ onClose, isEmbedded = false, prefillProject = null,
               disabled
             />
 
-            <div className="grid grid-cols-2 gap-4 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
               <Input
                 type="date"
                 label="Invoice Date"
@@ -198,7 +198,7 @@ const CreateInvoiceForm = ({ onClose, isEmbedded = false, prefillProject = null,
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full items-start">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 w-full items-start">
             <div className="col-span-2">
               <Input
                 type="textarea"

@@ -158,7 +158,10 @@ export const getTasks = async (req, res, next) => {
             tasks = await Task.find(query)
                 .populate({
                     path: 'projectId',
-                    populate: { path: 'client' }
+                    populate: [
+                        { path: 'client' },
+                        { path: 'platformClient', select: 'fullName email avatar company phone' }
+                    ]
                 })
                 .sort(sortQuery)
                 .skip((pageNum - 1) * limitNum)
@@ -181,7 +184,10 @@ export const getTasks = async (req, res, next) => {
             tasks = await Task.find(query)
                 .populate({
                     path: 'projectId',
-                    populate: { path: 'client' }
+                    populate: [
+                        { path: 'client' },
+                        { path: 'platformClient', select: 'fullName email avatar company phone' }
+                    ]
                 })
                 .sort(sortQuery);
 

@@ -3,9 +3,8 @@ import { createPortal } from 'react-dom';
 import { useMeetings } from '../../context/MeetingContext';
 import { useClients } from '../../context/ClientContext';
 import { useProjects } from '../../context/ProjectContext';
-import { useNotifications } from '../../context/NotificationContext';
 import { useActivities } from '../../context/ActivityContext';
-import { X, Video, Users, Clock } from 'lucide-react';
+import { X, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
@@ -14,12 +13,12 @@ const ScheduleMeetingForm = ({ onClose, isEmbedded = false, prefillClient = null
   const { addMeeting } = useMeetings();
   const { clients } = useClients();
   const { projects } = useProjects();
-  const { addNotification } = useNotifications();
   const { addMeetingActivity } = useActivities();
 
   const [formData, setFormData] = useState({
     title: '',
-    client: prefillClient?.name || '',
+    clientId: prefillClient?._id || prefillClient?.id || '',
+    client: prefillClient?.name || prefillClient?.fullName || '',
     clientEmail: prefillClient?.email || '',
     project: '',
     date: '',
@@ -27,6 +26,7 @@ const ScheduleMeetingForm = ({ onClose, isEmbedded = false, prefillClient = null
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     duration: '30',
     provider: 'Google Meet',
+    meetingLink: '',
     additionalParticipants: '',
     agenda: '',
     notes: ''
@@ -46,11 +46,12 @@ const ScheduleMeetingForm = ({ onClose, isEmbedded = false, prefillClient = null
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    if (name === 'client') {
-      const selectedClient = clients.find(c => c.name === value);
+    if (name === 'clientId') {
+      const selectedClient = clients.find(c => (c.id || c._id)?.toString() === value);
       setFormData(prev => ({
         ...prev,
-        client: value,
+        clientId: value,
+        client: selectedClient?.name || selectedClient?.fullName || '',
         clientEmail: selectedClient?.email || ''
       }));
     } else {
@@ -67,9 +68,9 @@ const ScheduleMeetingForm = ({ onClose, isEmbedded = false, prefillClient = null
       document.querySelector('[name="title"]')?.focus();
       return;
     }
-    if (!formData.client) {
+    if (!formData.clientId) {
       toast.error('Client is required');
-      document.querySelector('[name="client"]')?.focus();
+      document.querySelector('[name="clientId"]')?.focus();
       return;
     }
     if (!formData.clientEmail) {
@@ -97,6 +98,14 @@ const ScheduleMeetingForm = ({ onClose, isEmbedded = false, prefillClient = null
       document.querySelector('[name="duration"]')?.focus();
       return;
     }
+    try {
+      const meetingUrl = new URL(formData.meetingLink);
+      if (!['http:', 'https:'].includes(meetingUrl.protocol)) throw new Error();
+    } catch {
+      toast.error('A valid meeting link is required');
+      document.querySelector('[name="meetingLink"]')?.focus();
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -105,7 +114,6 @@ const ScheduleMeetingForm = ({ onClose, isEmbedded = false, prefillClient = null
       const response = await addMeeting(formData);
 
       if (response) {
-        addNotification('new task', 'Meeting Scheduled', `Scheduled "${formData.title}" on ${formData.date} at ${formData.time}.`);
         addMeetingActivity({
           action: 'scheduled',
           title: formData.title,
@@ -124,9 +132,9 @@ const ScheduleMeetingForm = ({ onClose, isEmbedded = false, prefillClient = null
 
   const resetForm = () => {
     setFormData({
-      title: '', client: '', clientEmail: '', project: '', date: '', time: '',
+      title: '', clientId: '', client: '', clientEmail: '', project: '', date: '', time: '',
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, duration: '30',
-      provider: 'Google Meet', additionalParticipants: '', agenda: '', notes: ''
+      provider: 'Google Meet', meetingLink: '', additionalParticipants: '', agenda: '', notes: ''
     });
   };
 
@@ -157,12 +165,12 @@ const ScheduleMeetingForm = ({ onClose, isEmbedded = false, prefillClient = null
             <Input
               type="select"
               label="Client"
-              name="client"
-              value={formData.client}
+              name="clientId"
+              value={formData.clientId}
               onChange={handleChange}
               required
               placeholder="Select a client..."
-              options={clients.map(c => c.name)}
+              options={clients.map(c => ({ value: c.id || c._id, label: c.name || c.fullName }))}
             />
 
             <Input
@@ -240,6 +248,16 @@ const ScheduleMeetingForm = ({ onClose, isEmbedded = false, prefillClient = null
               value={formData.provider}
               onChange={handleChange}
               options={["Google Meet", "Zoom"]}
+            />
+
+            <Input
+              type="url"
+              label="Meeting Link"
+              name="meetingLink"
+              value={formData.meetingLink}
+              onChange={handleChange}
+              placeholder="https://meet.google.com/..."
+              required
             />
 
             <div className="md:col-span-2">

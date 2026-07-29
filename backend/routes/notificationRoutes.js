@@ -12,10 +12,10 @@ const router = express.Router();
 router.route('/')
     .get(protect, authorizeRoles('freelancer', 'client'), getNotifications);
 
-router.put('/mark-all-read', protect, authorizeRoles('freelancer'), markAllNotificationsRead);
+router.put('/mark-all-read', protect, authorizeRoles('freelancer', 'client'), markAllNotificationsRead);
 
 router.route('/:id')
-    .put(protect, authorizeRoles('freelancer'), markNotificationRead)
-    .delete(protect, authorizeRoles('freelancer'), deleteNotification);
+    .put(protect, authorizeRoles('freelancer', 'client'), markNotificationRead)
+    .delete(protect, authorizeRoles('freelancer', 'client'), deleteNotification);
 
 export default router;

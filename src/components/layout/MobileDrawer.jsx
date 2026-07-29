@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Rocket, FileText, Receipt, Settings, X, LogOut, Bell } from 'lucide-react';
+import { Rocket, FileText, ReceiptIndianRupee, Settings, X, LogOut, Bell, MessageSquare } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -29,8 +29,9 @@ const MobileDrawer = ({ isOpen, onClose }) => {
     }, [isOpen, onClose]);
 
     const navItems = [
+        { name: 'Messages', path: '/freelancer/messages', icon: MessageSquare },
         { name: 'Notes', path: '/freelancer/notes', icon: FileText },
-        { name: 'Invoices', path: '/freelancer/invoices', icon: Receipt },
+        { name: 'Invoices', path: '/freelancer/invoices', icon: ReceiptIndianRupee },
         { name: 'Notifications', path: '/freelancer/notifications', icon: Bell },
     ];
 

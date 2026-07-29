@@ -151,7 +151,7 @@ const ProjectOverviewTab = ({ project }) => {
     return (
         <div className="space-y-6 animate-in fade-in">
             {/* Editable Fields Grid */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                 {/* Status */}
                 <div className="flex flex-col gap-1.5">
@@ -195,7 +195,7 @@ const ProjectOverviewTab = ({ project }) => {
                 {/* Project Financials */}
                 <div className="col-span-1 border-t border-outline-variant/10 pt-4 mt-2">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-2 block">Financial Summary</label>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="p-3 bg-surface-container rounded-xl">
                             <p className="text-[10px] font-bold text-on-surface-variant mb-1">Total Billed</p>
                             <p className="text-body-md font-bold text-on-surface">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(totalBilled)}</p>
@@ -218,7 +218,7 @@ const ProjectOverviewTab = ({ project }) => {
                 <div className="flex flex-col gap-1.5 font-sans">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Agreed Budget (₹)</label>
                     <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-body-sm">₹</span>
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-body-sm pointer-events-none">₹</span>
                         <input
                             type="number"
                             value={budget}
@@ -233,7 +233,7 @@ const ProjectOverviewTab = ({ project }) => {
                 <div className="flex flex-col gap-1.5 font-sans">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Hourly Rate (₹)</label>
                     <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-body-sm">₹</span>
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-body-sm pointer-events-none">₹</span>
                         <input
                             type="number"
                             value={hourlyRate}
@@ -401,7 +401,7 @@ const ProjectOverviewTab = ({ project }) => {
                                         {projectInvoice.status}
                                     </span>
                                 </div>
-                                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-outline-variant/10 text-body-sm">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-outline-variant/10 text-body-sm">
                                     <div>
                                         <p className="text-[9px] uppercase font-bold text-on-surface-variant mb-0.5">Total Amount</p>
                                         <p className="font-bold text-on-surface">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(projectInvoice.total || 0)}</p>
@@ -465,7 +465,7 @@ const ProjectOverviewTab = ({ project }) => {
             <div className="space-y-4">
                 <h4 className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Project Info</h4>
 
-                <div className="grid grid-cols-2 gap-4 text-body-sm bg-surface-container-low/40 p-4 rounded-2xl border border-outline-variant/10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-body-sm bg-surface-container-low/40 p-4 rounded-2xl border border-outline-variant/10">
                     <div>
                         <p className="text-[9px] uppercase font-bold text-on-surface-variant">Project Name</p>
                         <p className="text-on-surface font-medium mt-0.5 truncate">{project.title}</p>

@@ -6,13 +6,13 @@ export const fetchMeetings = async () => {
 };
 
 export const scheduleMeeting = async (meetingData) => {
-  try {
-    const res = await api.post('/meetings', meetingData);
-    return { success: true, meeting: res.data };
-  } catch (error) {
-    console.error('API scheduleMeeting failed:', error);
-    return { success: false, error };
-  }
+  const res = await api.post('/meetings', meetingData);
+  return { success: true, meeting: res.data };
+};
+
+export const fetchMeeting = async (id) => {
+  const res = await api.get(`/meetings/${id}`);
+  return res.data;
 };
 
 export const updateMeeting = async (id, meetingData) => {

@@ -4,9 +4,10 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { Users, FileText, Briefcase, Clock, ArrowRight, Activity, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import UpcomingMeetingsWidget from '../components/dashboard/UpcomingMeetingsWidget';
 
 const ClientDashboard = () => {
-    const { user, logout } = useUser();
+    const { user } = useUser();
     const navigate = useNavigate();
 
     return (
@@ -120,6 +121,7 @@ const ClientDashboard = () => {
 
                 {/* Sidebar Column (Takes 1 column) */}
                 <div className="space-y-6">
+                    <UpcomingMeetingsWidget onViewMeeting={(meeting) => navigate(`/client/meetings?meetingId=${meeting._id || meeting.id}`)} />
                     <Card className="p-0 overflow-hidden h-[400px] flex flex-col">
                         <div className="p-6 border-b border-outline-variant/20 flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -157,7 +159,7 @@ const ClientDashboard = () => {
                         </div>
                         <h3 className="font-title-md font-bold text-on-primary-container">{user?.fullName || 'Client User'}</h3>
                         <p className="text-body-sm text-on-primary-container/80 mb-4">{user?.company || 'Independent Client'}</p>
-                        <Button variant="outline" size="sm" onClick={() => navigate('/client/settings')} className="w-full bg-surface/50 border-primary/20 text-on-primary-container hover:bg-surface">
+                        <Button variant="outline" size="sm" onClick={() => navigate('/client/profile')} className="w-full bg-surface/50 border-primary/20 text-on-primary-container hover:bg-surface">
                             Complete Profile
                         </Button>
                     </Card>

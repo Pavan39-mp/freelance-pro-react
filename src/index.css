@@ -123,6 +123,12 @@
 }
 
 @layer base {
+  html,
+  body,
+  #root {
+    max-width: 100%;
+  }
+
   body {
     background-color: var(--color-surface);
     color: var(--color-on-surface);
@@ -141,6 +147,59 @@
 }
 
 @layer components {
+  /* Shared form-control geometry. Visual styling remains owned by each page. */
+  :where(.form-control, input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='color']):not([type='hidden']), select) {
+    min-height: 2.75rem !important;
+    padding-block: 0.625rem !important;
+    padding-inline: 1.25rem !important;
+    line-height: 1.5rem;
+  }
+
+  :where(select:not([multiple])) {
+    appearance: none;
+    padding-right: 3rem !important;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23948e9c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
+    background-position: right 1rem center !important;
+    background-repeat: no-repeat !important;
+    background-size: 1rem 1rem !important;
+  }
+
+  :where(.relative):has(> select:not([multiple]) + svg.absolute) > select:not([multiple]) {
+    background-image: none !important;
+  }
+
+  :where(.relative):has(> select:not([multiple])) > svg.absolute[class*='right-'] {
+    right: 1rem !important;
+    top: 50% !important;
+    width: 1rem !important;
+    height: 1rem !important;
+    transform: translateY(-50%) !important;
+    flex-shrink: 0;
+  }
+
+  :where(textarea) {
+    padding: 0.625rem 1.25rem !important;
+    line-height: 1.5rem;
+  }
+
+  :where(.form-control--left-icon),
+  :where(.relative):has(> .absolute[class*='left-']) > :where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']), textarea, select) {
+    padding-left: 3rem !important;
+  }
+
+  :where(.form-control--right-icon),
+  :where(.relative):has(> .absolute[class*='right-']) > :where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']), textarea, select) {
+    padding-right: 3rem !important;
+  }
+
+  :where(label):has(+ :where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='hidden']), textarea, select, .relative:has(input, textarea, select))) {
+    margin-bottom: 0 !important;
+  }
+
+  :where(label) + :where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='hidden']), textarea, select, .relative:has(input, textarea, select)) {
+    margin-top: 0.5rem !important;
+  }
+
   .glass-card {
     background: var(--color-glass-bg);
     backdrop-filter: blur(1.25rem);

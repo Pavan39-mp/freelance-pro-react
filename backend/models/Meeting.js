@@ -2,7 +2,10 @@ import mongoose from 'mongoose';
 
 const MeetingSchema = new mongoose.Schema({
     title: { type: String, required: true },
-    client: { type: String, required: true }, // Client Name
+    freelancer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    client: { type: String, required: true }, // Legacy/display Client name
+    clientUser: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    clientName: { type: String, default: '' },
     clientEmail: { type: String, required: true },
     project: { type: String, required: true }, // Project Title
     provider: { type: String, enum: ['Google Meet', 'Zoom'], required: true },
@@ -15,7 +18,8 @@ const MeetingSchema = new mongoose.Schema({
     additionalParticipants: { type: String, default: '' },
     duration: { type: Number, default: 30 },
     status: { type: String, enum: ['Scheduled', 'Completed', 'Cancelled'], default: 'Scheduled' },
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+    // Retained for compatibility with legacy Freelancer meeting records.
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }
 }, { timestamps: true });
 
 const Meeting = mongoose.model('Meeting', MeetingSchema);

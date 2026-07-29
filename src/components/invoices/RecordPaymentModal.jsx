@@ -109,7 +109,7 @@ const RecordPaymentModal = ({ invoice, onClose }) => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-label-sm font-bold text-on-surface mb-2">Date</label>
                             <div className="relative">

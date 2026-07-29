@@ -1,8 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Users, MapPin, Briefcase, Clock, Filter, X } from 'lucide-react';
+import { Search, MapPin, Briefcase, Clock, Filter, X } from 'lucide-react';
 import { getFreelancers } from '../../services/freelancerService';
 import toast from 'react-hot-toast';
+
+const EXPERIENCE_LABELS = { entry: 'Entry Level', intermediate: 'Intermediate', expert: 'Expert' };
+const AVAILABILITY_LABELS = { 'full-time': 'Full Time', 'part-time': 'Part Time', 'as-needed': 'As Needed' };
+const experienceText = (years) => `${years} ${years === 1 ? 'year' : 'years'} experience`;
+const hoursText = (hours) => `${hours} hours/week`;
 
 const FindFreelancers = () => {
     const navigate = useNavigate();
@@ -13,11 +18,8 @@ const FindFreelancers = () => {
     // Pagination & Query State
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
-    const [filters, setFilters] = useState({
-        skills: '',
-        availability: '',
-        experience: ''
-    });
+    const [availability, setAvailability] = useState('');
+    const [experienceLevel, setExperienceLevel] = useState('');
     const [sort, setSort] = useState('newest');
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -27,16 +29,14 @@ const FindFreelancers = () => {
 
     // Debounce search input
     useEffect(() => {
-        const timer = setTimeout(() => setDebouncedSearch(search), 500);
+        const timer = setTimeout(() => {
+            setDebouncedSearch(search);
+            setPage(1);
+        }, 500);
         return () => clearTimeout(timer);
     }, [search]);
 
-    // Fetch freelancers whenever query params change
-    useEffect(() => {
-        fetchFreelancers();
-    }, [debouncedSearch, filters, sort, page]);
-
-    const fetchFreelancers = async () => {
+    const fetchFreelancers = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
@@ -45,7 +45,8 @@ const FindFreelancers = () => {
                 sort,
                 page,
                 limit: 12,
-                ...Object.fromEntries(Object.entries(filters).filter(([_, v]) => v))
+                ...(availability && { availability }),
+                ...(experienceLevel && { experienceLevel })
             };
             const res = await getFreelancers(params);
             if (res && res.success) {
@@ -61,15 +62,21 @@ const FindFreelancers = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [availability, debouncedSearch, experienceLevel, page, sort]);
+
+    useEffect(() => {
+        fetchFreelancers();
+    }, [fetchFreelancers]);
 
     const handleFilterChange = (key, value) => {
-        setFilters(prev => ({ ...prev, [key]: value }));
+        if (key === 'availability') setAvailability(value);
+        if (key === 'experienceLevel') setExperienceLevel(value);
         setPage(1); // Reset to page 1 on filter
     };
 
     const clearFilters = () => {
-        setFilters({ skills: '', availability: '', experience: '' });
+        setAvailability('');
+        setExperienceLevel('');
         setSearch('');
         setSort('newest');
         setPage(1);
@@ -114,33 +121,32 @@ const FindFreelancers = () => {
                 <div className={`flex flex-col lg:flex-row gap-4 ${showFilters ? 'flex' : 'hidden lg:flex'}`}>
                     <select
                         className="py-3 px-4 bg-surface-container rounded-2xl border border-outline-variant/30 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary appearance-none pr-10 relative cursor-pointer"
-                        value={filters.availability}
+                        value={availability}
                         onChange={(e) => handleFilterChange('availability', e.target.value)}
                         style={{ backgroundImage: `url('data:image/svg+xml;utf8,<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>')`, backgroundPosition: 'calc(100% - 12px) center', backgroundRepeat: 'no-repeat', backgroundSize: '16px' }}
                     >
                         <option value="">Any Availability</option>
-                        <option value="Full-time">Full-time</option>
-                        <option value="Part-time">Part-time</option>
-                        <option value="Hourly">Hourly</option>
-                        <option value="As Needed">As Needed</option>
+                        <option value="full-time">Full Time</option>
+                        <option value="part-time">Part Time</option>
+                        <option value="as-needed">As Needed</option>
                     </select>
 
                     <select
                         className="py-3 px-4 bg-surface-container rounded-2xl border border-outline-variant/30 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary appearance-none pr-10 cursor-pointer"
-                        value={filters.experience}
-                        onChange={(e) => handleFilterChange('experience', e.target.value)}
+                        value={experienceLevel}
+                        onChange={(e) => handleFilterChange('experienceLevel', e.target.value)}
                         style={{ backgroundImage: `url('data:image/svg+xml;utf8,<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>')`, backgroundPosition: 'calc(100% - 12px) center', backgroundRepeat: 'no-repeat', backgroundSize: '16px' }}
                     >
                         <option value="">Any Experience</option>
-                        <option value="Entry Level">Entry Level</option>
-                        <option value="Intermediate">Intermediate</option>
-                        <option value="Expert">Expert</option>
+                        <option value="entry">Entry Level</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="expert">Expert</option>
                     </select>
 
                     <select
                         className="py-3 px-4 bg-surface-container rounded-2xl border border-outline-variant/30 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary appearance-none pr-10 cursor-pointer font-medium text-primary"
                         value={sort}
-                        onChange={(e) => setSort(e.target.value)}
+                        onChange={(e) => { setSort(e.target.value); setPage(1); }}
                         style={{ backgroundImage: `url('data:image/svg+xml;utf8,<svg fill="%232e6b36" viewBox="0 0 24 24" stroke="%232e6b36" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>')`, backgroundPosition: 'calc(100% - 12px) center', backgroundRepeat: 'no-repeat', backgroundSize: '16px' }}
                     >
                         <option value="newest">Sort: Newest</option>
@@ -148,7 +154,7 @@ const FindFreelancers = () => {
                         <option value="name">Sort: Name (A-Z)</option>
                     </select>
 
-                    {(search || Object.values(filters).some(v => v !== '')) && (
+                    {(search || availability || experienceLevel || sort !== 'newest') && (
                         <button
                             onClick={clearFilters}
                             className="flex items-center justify-center p-3 bg-error/10 text-error rounded-2xl hover:bg-error/20 transition-colors"
@@ -219,18 +225,21 @@ const FindFreelancers = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {freelancers.map(freelancer => {
                             const skillsArray = freelancer.skills ? typeof freelancer.skills === 'string' ? freelancer.skills.split(',').map(s => s.trim()).filter(Boolean) : freelancer.skills : [];
+                            const name = freelancer.name || 'Freelancer';
+                            const years = Number(freelancer.experienceYears) || 0;
+                            const hours = Number(freelancer.availableHoursPerWeek) || 0;
                             return (
                                 <div key={freelancer._id || freelancer.id} className="group bg-surface-container-low rounded-3xl p-6 border border-outline-variant/20 hover:border-primary/20 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between">
                                     <div>
                                         <div className="flex gap-4 items-start mb-4">
                                             <img
-                                                src={freelancer.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(freelancer.fullName || 'F')}&background=random`}
-                                                alt={freelancer.fullName}
+                                                src={freelancer.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`}
+                                                alt={name}
                                                 className="w-14 h-14 rounded-2xl object-cover ring-2 ring-transparent group-hover:ring-primary/20 transition-all"
                                             />
                                             <div className="flex-1 min-w-0">
                                                 <h3 className="font-bold text-base text-on-surface truncate pr-2 group-hover:text-primary transition-colors">
-                                                    {freelancer.fullName}
+                                                    {name}
                                                 </h3>
                                                 <p className="text-secondary text-xs font-semibold truncate mt-0.5">{freelancer.title || 'Freelance Professional'}</p>
 
@@ -260,14 +269,14 @@ const FindFreelancers = () => {
                                     </div>
 
                                     <div>
-                                        <div className="pt-4 border-t border-outline-variant/20 grid grid-cols-2 gap-y-3 text-xs mb-5">
+                                        <div className="pt-4 border-t border-outline-variant/20 grid grid-cols-1 sm:grid-cols-2 gap-y-3 text-xs mb-5">
                                             <div className="flex items-center gap-2 text-on-surface-variant">
                                                 <Briefcase className="w-3.5 h-3.5 text-tertiary" />
-                                                <span className="truncate">{freelancer.experience || 'Intermediate'}</span>
+                                                <span className="truncate">{EXPERIENCE_LABELS[freelancer.experienceLevel] || 'Entry Level'} · {experienceText(years)}</span>
                                             </div>
                                             <div className="flex items-center gap-2 text-on-surface-variant">
                                                 <Clock className="w-3.5 h-3.5 text-secondary" />
-                                                <span className="truncate">{freelancer.availability || 'Available'}</span>
+                                                <span className="truncate">{AVAILABILITY_LABELS[freelancer.availabilityType] || 'As Needed'} · {hoursText(hours)}</span>
                                             </div>
                                         </div>
 

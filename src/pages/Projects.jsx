@@ -65,7 +65,7 @@ const Projects = () => {
   const renderColumn = (title, columnStatus) => {
     const colProjects = projects?.filter(p => p.status === columnStatus) || [];
     return (
-      <div className="flex-1 min-w-[18.75rem] flex flex-col gap-4">
+      <div className="w-full min-w-0 flex-none md:w-auto md:min-w-[18.75rem] md:flex-1 flex flex-col gap-4">
         <div className="flex items-center justify-between px-2">
           <h3 className="font-headline-sm text-headline-sm text-on-surface">{title} <span className="text-on-surface-variant text-body-sm ml-2">{colProjects.length}</span></h3>
         </div>
@@ -130,7 +130,7 @@ const Projects = () => {
                 </div>
 
                 {/* Metrics */}
-                <div className="grid grid-cols-2 gap-2 mt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
                   <div className="bg-surface-variant/30 p-2.5 rounded-xl border border-outline-variant/10">
                     <p className="text-[10px] text-on-surface-variant font-bold tracking-wider mb-1">Tasks</p>
                     <p className="text-body-md font-bold text-on-surface">{completedTasks} / {totalTasks}</p>
@@ -244,7 +244,7 @@ const Projects = () => {
         </div>
 
         {/* Bottom Metrics */}
-        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-outline-variant/10 relative z-10 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-outline-variant/10 relative z-10 mb-4">
           <div>
             <p className="text-[10px] text-on-surface-variant font-bold tracking-wider uppercase mb-1">Budget</p>
             <p className="flex items-center gap-1 text-on-surface font-bold">
@@ -290,9 +290,9 @@ const Projects = () => {
       </div>
 
       {/* Query Filter Toolbar */}
-      <div className="flex flex-wrap gap-4 mb-6 p-4 bg-surface-container-low/30 rounded-2xl border border-outline-variant/10">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-[50%] -translate-y-[50%] w-4 h-4 text-on-surface-variant" />
+      <div className="flex flex-col md:flex-row md:flex-wrap gap-4 mb-6 p-4 bg-surface-container-low/30 rounded-2xl border border-outline-variant/10">
+        <div className="relative w-full min-w-0 md:flex-1 md:min-w-[200px]">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant pointer-events-none" />
           <input
             type="text"
             placeholder="Search projects..."
@@ -305,7 +305,7 @@ const Projects = () => {
         <select
           value={priority}
           onChange={(e) => setPriority(e.target.value)}
-          className="bg-surface-container-high border border-outline-variant/20 rounded-xl text-body-sm text-on-surface py-2 px-3 focus:outline-none cursor-pointer"
+          className="w-full md:w-auto bg-surface-container-high border border-outline-variant/20 rounded-xl text-body-sm text-on-surface py-2 px-3 focus:outline-none cursor-pointer"
         >
           <option value="All">All Priorities</option>
           <option value="High">High</option>
@@ -316,7 +316,7 @@ const Projects = () => {
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          className="bg-surface-container-high border border-outline-variant/20 rounded-xl text-body-sm text-on-surface py-2 px-3 focus:outline-none cursor-pointer"
+          className="w-full md:w-auto bg-surface-container-high border border-outline-variant/20 rounded-xl text-body-sm text-on-surface py-2 px-3 focus:outline-none cursor-pointer"
         >
           <option value="All">All Statuses</option>
           <option value="To Do">To Do</option>
@@ -332,7 +332,7 @@ const Projects = () => {
             setSortBy(field);
             setSortOrder(order);
           }}
-          className="bg-surface-container-high border border-outline-variant/20 rounded-xl text-body-sm text-on-surface py-2 px-3 focus:outline-none cursor-pointer"
+          className="w-full md:w-auto bg-surface-container-high border border-outline-variant/20 rounded-xl text-body-sm text-on-surface py-2 px-3 focus:outline-none cursor-pointer"
         >
           <option value="createdAt-desc">Newest First</option>
           <option value="createdAt-asc">Oldest First</option>
@@ -354,11 +354,11 @@ const Projects = () => {
           )}
         </div>
       ) : (
-        <div className="flex gap-6 overflow-x-auto pb-4 custom-scrollbar min-h-[37.5rem]">
+        <div className="flex flex-col md:flex-row gap-6 overflow-visible md:overflow-x-auto pb-4 md:custom-scrollbar min-h-[37.5rem] min-w-0">
           {renderColumn('To Do', 'To Do')}
           {renderColumn('In Progress', 'In Progress')}
-          {renderColumn('On Hold', 'On Hold')}
           {renderColumn('Completed', 'Completed')}
+          {renderColumn('On Hold', 'On Hold')}
         </div>
       )}
 

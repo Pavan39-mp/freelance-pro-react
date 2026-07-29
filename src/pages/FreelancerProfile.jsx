@@ -2,12 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { Mail, MapPin, Briefcase, Clock, Globe, ArrowLeft, Star, Tag, CheckCircle, User } from 'lucide-react';
+import { MapPin, Briefcase, Clock, Globe, ArrowLeft, Tag, CheckCircle, User } from 'lucide-react';
 import { getFreelancerProfile } from '../services/freelancerService';
 import { createProjectRequest } from '../services/projectRequestService';
+import { createOrGetConversation } from '../services/messageService';
 import { useUser } from '../context/UserContext';
 import ProjectRequestModal from '../components/modals/ProjectRequestModal';
 import toast from 'react-hot-toast';
+
+const EXPERIENCE_LABELS = { entry: 'Entry Level', intermediate: 'Intermediate', expert: 'Expert' };
+const AVAILABILITY_LABELS = { 'full-time': 'Full Time', 'part-time': 'Part Time', 'as-needed': 'As Needed' };
 
 const FreelancerProfile = () => {
     const { id } = useParams();
@@ -16,6 +20,32 @@ const FreelancerProfile = () => {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+    const [openingConversation, setOpeningConversation] = useState(false);
+
+    const handleContactFreelancer = async () => {
+        if (user?.role !== 'client') {
+            toast.error('Only clients can contact freelancers.');
+            return;
+        }
+        const freelancerId = profile?._id || id;
+        if (!freelancerId) {
+            toast.error('Unable to identify this freelancer.');
+            return;
+        }
+        setOpeningConversation(true);
+        try {
+            const response = await createOrGetConversation(freelancerId);
+            const conversationId = response?.data?._id;
+            if (!response?.success || !conversationId) {
+                throw new Error(response?.message || 'Unable to open conversation.');
+            }
+            navigate(`/client/messages?conversationId=${encodeURIComponent(conversationId)}`);
+        } catch (error) {
+            toast.error(error.message || 'Unable to open conversation.');
+        } finally {
+            setOpeningConversation(false);
+        }
+    };
 
     const handleSendRequest = async (requestData) => {
         try {
@@ -93,7 +123,7 @@ const FreelancerProfile = () => {
                 isOpen={isRequestModalOpen}
                 onClose={() => setIsRequestModalOpen(false)}
                 onSubmit={handleSendRequest}
-                freelancerName={profile.fullName}
+                freelancerName={profile.name}
             />
 
             {/* Profile Hero Card */}
@@ -103,17 +133,17 @@ const FreelancerProfile = () => {
                 <div className="relative pt-24 px-8 pb-8">
                     <div className="flex flex-col md:flex-row gap-8 items-start md:items-end">
                         <div className="w-32 h-32 rounded-2xl overflow-hidden border-4 border-surface shadow-xl bg-surface-variant shrink-0">
-                            {profile.avatar ? (
-                                <img src={profile.avatar} alt={profile.fullName} className="w-full h-full object-cover" />
+                            {profile.profilePicture ? (
+                                <img src={profile.profilePicture} alt={profile.name} className="w-full h-full object-cover" />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center bg-primary text-on-primary font-display-md font-bold">
-                                    {profile.fullName?.charAt(0) || 'F'}
+                                    {profile.name?.charAt(0) || 'F'}
                                 </div>
                             )}
                         </div>
 
                         <div className="flex-1 space-y-2">
-                            <h2 className="font-display-sm font-black text-on-surface">{profile.fullName}</h2>
+                            <h2 className="font-display-sm font-black text-on-surface">{profile.name}</h2>
                             {profile.title && (
                                 <p className="text-primary font-title-md font-semibold">{profile.title}</p>
                             )}
@@ -124,24 +154,30 @@ const FreelancerProfile = () => {
                                         <span>{profile.location}</span>
                                     </div>
                                 )}
-                                {profile.experience && (
+                                {profile.experienceLevel && (
                                     <div className="flex items-center gap-1.5 bg-surface-variant/50 px-3 py-1 rounded-full">
                                         <Briefcase className="w-4 h-4" />
-                                        <span>{profile.experience}</span>
+                                        <span>{EXPERIENCE_LABELS[profile.experienceLevel]} · {profile.experienceYears} {profile.experienceYears === 1 ? 'year' : 'years'} experience</span>
                                     </div>
                                 )}
-                                {profile.availability && (
+                                {profile.availabilityType && (
                                     <div className="flex items-center gap-1.5 bg-surface-variant/50 px-3 py-1 rounded-full">
                                         <Clock className="w-4 h-4" />
-                                        <span>{profile.availability}</span>
+                                        <span>{AVAILABILITY_LABELS[profile.availabilityType]} · {profile.availableHoursPerWeek} hours/week</span>
                                     </div>
                                 )}
                             </div>
                         </div>
 
                         <div className="shrink-0 w-full md:w-auto flex justify-center">
-                            <Button className="w-full md:w-auto px-8" size="lg">
-                                Contact Freelancer
+                            <Button
+                                type="button"
+                                className="w-full md:w-auto px-8"
+                                size="lg"
+                                onClick={handleContactFreelancer}
+                                disabled={openingConversation}
+                            >
+                                {openingConversation ? 'Opening...' : 'Contact Freelancer'}
                             </Button>
                         </div>
                     </div>

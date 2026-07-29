@@ -141,7 +141,7 @@ const InvoiceFormModal = ({ invoice, onSave, onClose, clientManaged = false }) =
     const labelCls = 'block text-[10px] font-bold tracking-wider text-on-surface-variant mb-1';
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-background/70 backdrop-blur-sm" onClick={onClose} />
             <div className="relative w-full max-w-4xl max-h-[92vh] bg-surface-container rounded-2xl border border-outline-variant/20 shadow-2xl flex flex-col overflow-hidden">
 
@@ -256,7 +256,7 @@ const InvoiceFormModal = ({ invoice, onSave, onClose, clientManaged = false }) =
                         {/* Totals */}
                         <div className="flex justify-end">
                             <div className="w-full max-w-xs space-y-2">
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className={labelCls}>Tax Rate (%)</label>
                                         <input type="number" min="0" max="100" value={form.taxRate} onChange={e => setField('taxRate', e.target.value)} className={inputCls} />

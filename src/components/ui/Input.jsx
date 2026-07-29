@@ -16,11 +16,11 @@ const Input = ({
     rightIcon: RightIcon,
     ...props
 }) => {
-    const baseInputStyle = 'w-full bg-surface-secondary border border-border rounded-[0.75rem] py-[0.625rem] px-[1.25rem] text-text font-body-md placeholder:text-placeholder-color focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all duration-200';
+    const baseInputStyle = 'form-control w-full bg-surface-secondary border border-border rounded-[0.75rem] text-text font-body-md placeholder:text-placeholder-color focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none transition-all duration-200';
 
     // Add extra padding if icons are present
-    const leftPadClass = LeftIcon ? 'pl-[3rem]' : '';
-    const rightPadClass = RightIcon ? 'pr-[3rem]' : '';
+    const leftPadClass = LeftIcon ? 'form-control--left-icon' : '';
+    const rightPadClass = RightIcon ? 'form-control--right-icon' : '';
     const inputStyle = `${baseInputStyle} ${leftPadClass} ${rightPadClass} ${className}`;
 
     const handleInputChange = (e) => {
@@ -46,7 +46,7 @@ const Input = ({
 
             <div className="relative w-full">
                 {LeftIcon && (
-                    <div className="absolute left-[1rem] top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none flex items-center justify-center">
+                    <div className="absolute left-[1rem] top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary pointer-events-none flex items-center justify-center">
                         <LeftIcon className="w-5 h-5" />
                     </div>
                 )}
@@ -93,7 +93,7 @@ const Input = ({
                 )}
 
                 {RightIcon && (
-                    <div className="absolute right-[1rem] top-1/2 -translate-y-1/2 flex items-center justify-center">
+                    <div className="absolute right-[1rem] top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center">
                         {typeof RightIcon === 'function' ? (
                             <RightIcon className="w-5 h-5 text-text-secondary" />
                         ) : (

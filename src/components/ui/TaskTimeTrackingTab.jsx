@@ -124,7 +124,7 @@ const TaskTimeTrackingTab = ({ task }) => {
       {/* Manual Entry Form */}
       {showManual && (
         <form onSubmit={handleManualSubmit} className="bg-surface-container-low p-4 rounded-xl border border-primary/20 animate-in slide-in-from-top-2">
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-[10px] font-bold tracking-wider text-on-surface-variant mb-1">Date</label>
               <input type="date" required value={manualData.date} onChange={e => setManualData({...manualData, date: e.target.value})} className="w-full bg-surface-container-high border border-outline-variant/20 rounded-lg text-body-sm text-on-surface py-2 px-3 focus:ring-1 focus:ring-primary focus:outline-none" />

@@ -39,7 +39,7 @@ const MeetingDetails = ({ meeting, isOpen, onClose }) => {
   const handleCreateTask = () => {
     addTask({
       title: `Follow up: ${meeting.title}`,
-      client: meeting.client || '',
+      client: meeting.clientName || (typeof meeting.client === 'string' ? meeting.client : meeting.clientUser?.fullName) || '',
       project: meeting.project || '',
       priority: 'Medium',
       deadline: summaryData.followUpDate || new Date(Date.now() + 86400000).toISOString().split('T')[0],
@@ -60,7 +60,7 @@ const MeetingDetails = ({ meeting, isOpen, onClose }) => {
           <div>
             <h2 className="font-display-sm text-on-surface leading-tight mb-1 pr-4">{meeting.title}</h2>
             <div className="flex items-center gap-2">
-              <span className="text-body-sm text-on-surface-variant font-medium">{meeting.client || 'Internal'}</span>
+              <span className="text-body-sm text-on-surface-variant font-medium">{meeting.clientName || (typeof meeting.client === 'string' ? meeting.client : meeting.clientUser?.fullName) || 'Internal'}</span>
               <MeetingStatusBadge status={meeting.status} />
             </div>
           </div>

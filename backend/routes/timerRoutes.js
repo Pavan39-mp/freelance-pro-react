@@ -13,7 +13,7 @@ import {
 
 const router = express.Router();
 
-router.use(protect);
+router.use(protect, authorizeRoles('freelancer'));
 
 router.post('/start', startTimer);
 router.put('/:id/stop', stopTimer);

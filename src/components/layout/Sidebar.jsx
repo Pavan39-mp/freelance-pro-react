@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Rocket, LayoutDashboard, Users, Briefcase, ClipboardList, BarChart2, Settings, FileText, Receipt, Mail } from 'lucide-react';
+import { Rocket, LayoutDashboard, Users, Briefcase, ClipboardList, BarChart2, Settings, FileText, ReceiptIndianRupee, Mail, MessageSquare } from 'lucide-react';
 
 const Sidebar = () => {
   const navItems = [
@@ -9,8 +9,9 @@ const Sidebar = () => {
     { name: 'Projects', path: '/freelancer/projects', icon: Briefcase },
     { name: 'Tasks', path: '/freelancer/tasks', icon: ClipboardList },
     { name: 'Project Requests', path: '/freelancer/project-requests', icon: Mail },
+    { name: 'Messages', path: '/freelancer/messages', icon: MessageSquare },
     { name: 'Notes', path: '/freelancer/notes', icon: FileText },
-    { name: 'Invoices', path: '/freelancer/invoices', icon: Receipt },
+    { name: 'Invoices', path: '/freelancer/invoices', icon: ReceiptIndianRupee },
     { name: 'Analytics', path: '/freelancer/analytics', icon: BarChart2 },
   ];
 

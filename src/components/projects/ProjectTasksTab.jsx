@@ -11,23 +11,23 @@ const ProjectTasksTab = ({ project }) => {
     const [filter, setFilter] = useState('All');
     const [activeTask, setActiveTask] = useState(null);
 
-    const projectTasks = (tasks || []).filter(t => t.projectId === project.id || t.projectId === project._id);
+    const projectTasks = (tasks || []).filter(t => {
+        const taskProjectId = t.projectId?._id || t.projectId;
+        const currentProjectId = project._id || project.id;
+        return taskProjectId?.toString() === currentProjectId?.toString();
+    });
 
     const totalTasks = projectTasks.length;
     const completedTasks = projectTasks.filter(t => t.status === 'Completed').length;
     const inProgressTasks = projectTasks.filter(t => t.status === 'In Progress').length;
-    const toDoTasks = projectTasks.filter(t => ['To Do', 'Pending', 'New', 'Not Started'].includes(t.status)).length;
-    const onHoldTasks = projectTasks.filter(t => ['On Hold', 'Paused'].includes(t.status)).length;
+    const toDoTasks = projectTasks.filter(t => t.status === 'To Do').length;
+    const onHoldTasks = projectTasks.filter(t => t.status === 'On Hold').length;
 
     const filteredTasks = projectTasks.filter(task => {
         const matchesSearch = (task.title || '').toLowerCase().includes(search.toLowerCase());
 
-        let mappedStatus = task.status;
-        if (['Pending', 'New', 'Not Started'].includes(task.status)) mappedStatus = 'To Do';
-        if (['Paused'].includes(task.status)) mappedStatus = 'On Hold';
-
         if (filter === 'All') return matchesSearch;
-        return matchesSearch && mappedStatus === filter;
+        return matchesSearch && task.status === filter;
     });
 
     const getPriorityColor = (priority) => {
@@ -68,7 +68,7 @@ const ProjectTasksTab = ({ project }) => {
         <div className="space-y-6 animate-in fade-in">
 
             {/* Aggregated Totals Grid */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="bg-surface-container-low/40 p-3 rounded-xl border border-outline-variant/10 flex flex-col justify-center">
                     <p className="text-[9px] uppercase font-bold text-on-surface-variant">Overall Progress</p>
                     <div className="flex items-baseline gap-2 mt-1">
@@ -80,7 +80,7 @@ const ProjectTasksTab = ({ project }) => {
                     </div>
                 </div>
 
-                <div className="bg-surface-container-low/40 p-3 rounded-xl border border-outline-variant/10 grid grid-cols-4 gap-1 text-center">
+                <div className="bg-surface-container-low/40 p-3 rounded-xl border border-outline-variant/10 grid grid-cols-1 sm:grid-cols-4 gap-1 text-center">
                     <div className="flex flex-col justify-between py-0.5 border-r border-outline-variant/10">
                         <span className="text-[8px] uppercase font-bold text-on-surface-variant truncate">To Do</span>
                         <span className="text-base font-bold text-outline">{toDoTasks}</span>
@@ -103,7 +103,7 @@ const ProjectTasksTab = ({ project }) => {
             {/* Search & Filter Bar */}
             <div className="space-y-3">
                 <div className="relative">
-                    <Search className="absolute left-3 top-2.5 w-4 h-4 text-on-surface-variant" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant pointer-events-none" />
                     <input
                         type="text"
                         placeholder="Search project tasks..."

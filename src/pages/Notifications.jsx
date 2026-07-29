@@ -3,6 +3,7 @@ import { Bell, Search, Filter, CheckCircle2, MessageSquare, FileText, Calendar, 
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useNotifications } from '../context/NotificationContext';
+import { useUser } from '../context/UserContext';
 import { useFilterPipeline } from '../hooks/useFilterPipeline';
 import Card from '../components/ui/Card';
 import NotificationDetailsModal from '../components/modals/NotificationDetailsModal';
@@ -10,6 +11,7 @@ import { getIcon, getIconBg } from '../utils/notificationUtils';
 
 const Notifications = () => {
   const { notifications, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
+  const { user } = useUser();
   const [selectedNotification, setSelectedNotification] = useState(null);
   const navigate = useNavigate();
 
@@ -51,7 +53,7 @@ const Notifications = () => {
           if (window.history.length > 2) {
             navigate(-1);
           } else {
-            navigate('/freelancer/dashboard');
+            navigate(user?.role === 'client' ? '/client-dashboard' : '/freelancer/dashboard');
           }
         }}
         className="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2 font-label-caps text-label-caps font-bold"
@@ -83,10 +85,10 @@ const Notifications = () => {
 
       <Card className="rounded-[1.875rem] overflow-hidden shadow-2xl flex flex-col h-[70vh] p-0">
         {/* Toolbar */}
-        <div className="p-4 md:p-6 flex flex-wrap gap-4 items-center justify-between border-b border-outline-variant/10">
-          <div className="flex items-center gap-4 flex-1">
+        <div className="p-4 md:p-6 flex flex-col md:flex-row gap-4 md:items-center justify-between border-b border-outline-variant/10">
+          <div className="flex items-center gap-4 w-full min-w-0 md:flex-1">
             <div className="relative max-w-xs w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant w-4 h-4" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant w-4 h-4 pointer-events-none" />
               <input
                 className="w-full bg-surface-container/50 border-none rounded-xl py-2 pl-10 pr-4 text-on-surface text-body-sm focus:ring-1 focus:ring-primary/50"
                 placeholder="Search notifications..."
@@ -97,12 +99,12 @@ const Notifications = () => {
             </div>
           </div>
 
-          <div className="flex items-center bg-surface-container-low p-1 rounded-xl border border-outline-variant/20">
+          <div className="flex w-full md:w-auto items-center bg-surface-container-low p-1 rounded-xl border border-outline-variant/20">
             {['all', 'unread', 'read'].map(f => (
               <button
                 key={f}
                 onClick={() => { setFilter(f); setCurrentPage(1); }}
-                className={`px-4 py-1.5 rounded-lg text-label-caps font-label-caps capitalize transition-all ${filter === f ? 'bg-primary-container/20 text-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
+                className={`min-w-0 flex-1 md:flex-none px-3 md:px-4 py-1.5 rounded-lg text-label-caps font-label-caps capitalize transition-all ${filter === f ? 'bg-primary-container/20 text-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
               >
                 {f}
               </button>

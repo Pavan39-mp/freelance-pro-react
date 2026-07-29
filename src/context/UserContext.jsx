@@ -65,19 +65,16 @@ export const UserProvider = ({ children }) => {
     loadUser();
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (email, password, role) => {
     setLoading(true);
     try {
-      const res = await authService.login(email, password);
+      const res = await authService.login(email, password, role);
       if (res.success && res.data.token) {
         const authenticatedUser = setUser(res.data);
         if (!authenticatedUser) {
           return { success: false, message: 'This account has an invalid role.' };
         }
         localStorage.setItem('freelancepro_token', res.data.token);
-        // The login response establishes state immediately; /me then refreshes it
-        // from the authenticated database user without delaying route selection.
-        void loadUser();
         return { success: true, role: authenticatedUser.role };
       }
       return { success: false, message: res.message || 'Login failed' };

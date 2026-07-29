@@ -111,7 +111,7 @@ const ProjectDrawer = ({ project, onClose }) => {
                 </div>
 
                 {/* Sticky Footer */}
-                <div className={`p-4 border-t border-outline-variant/10 bg-surface-container-high shrink-0 grid ${user?.role === 'client' ? 'grid-cols-1' : 'grid-cols-2'} gap-3 sticky bottom-0 z-10`}>
+                <div className={`p-4 border-t border-outline-variant/10 bg-surface-container-high shrink-0 grid ${user?.role === 'client' ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'} gap-3 sticky bottom-0 z-10`}>
                     {user?.role !== 'client' && (
                         <button
                             onClick={handleDelete}

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import {
     Plus, Search, Download, Send, CheckCircle, Clock, XCircle,
     MoreVertical, Copy, Trash2, Edit2, AlertCircle, ChevronDown,
-    Receipt, IndianRupee, TrendingUp, AlertTriangle
+    ReceiptIndianRupee, IndianRupee, TrendingUp, AlertTriangle
 } from 'lucide-react';
 import { useInvoices } from '../context/InvoiceContext';
 import { useUser } from '../context/UserContext';
@@ -196,9 +196,9 @@ const Invoices = () => {
     };
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="p-0 sm:p-6 space-y-6 min-w-0">
             {/* Page Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="font-headline-md text-headline-md text-on-surface">Invoices</h1>
                     <p className="text-on-surface-variant text-body-md mt-0.5">{invoices.length} invoices · {user?.role === 'freelancer' ? 'View client payment documents' : 'Manage billing & payments'}</p>
@@ -215,9 +215,9 @@ const Invoices = () => {
 
             {/* Revenue Summary Cards */}
             {isFreelancer ? (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
-                        { title: 'Total Invoices', value: String(invoices.length), icon: 'Receipt', color: 'text-primary', bg: 'bg-primary-container/20' },
+                        { title: 'Total Invoices', value: String(invoices.length), icon: 'ReceiptIndianRupee', color: 'text-primary', bg: 'bg-primary-container/20' },
                         { title: 'Total Invoice Amount', value: INR(freelancerSummary.total), icon: 'TrendingUp', color: 'text-on-surface', bg: 'bg-surface-variant/20' },
                         { title: 'Total Paid', value: INR(freelancerSummary.paid), icon: 'CheckCircle', color: 'text-tertiary', bg: 'bg-tertiary-container/20' },
                         { title: 'Total Outstanding', value: INR(freelancerSummary.outstanding), icon: 'AlertCircle', color: 'text-error', bg: 'bg-error-container/20' }
@@ -226,7 +226,7 @@ const Invoices = () => {
                     ))}
                 </div>
             ) : revenueSummary && (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
                         { title: 'Total Revenue', value: INR(revenueSummary.totalRevenue), icon: 'TrendingUp', color: 'text-tertiary', bg: 'bg-tertiary-container/20' },
                         { title: 'Pending', value: INR(revenueSummary.pendingPayments), icon: 'Clock', color: 'text-primary', bg: 'bg-primary-container/20' },
@@ -241,8 +241,8 @@ const Invoices = () => {
             {/* Filter & Search */}
             <Card className="p-4">
                 <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                    <div className="relative flex-1">
-                        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+                    <div className="relative w-full min-w-0 sm:flex-1">
+                        <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
                         <input
                             value={search}
                             onChange={e => setSearch(e.target.value)}
@@ -251,11 +251,11 @@ const Invoices = () => {
                         />
                     </div>
                     {!isFreelancer && <>
-                        <select value={projectFilter} onChange={e => setProjectFilter(e.target.value)} className="bg-surface-container-high border border-outline-variant/20 rounded-xl text-body-sm text-on-surface py-2 px-3 focus:outline-none cursor-pointer">
+                        <select value={projectFilter} onChange={e => setProjectFilter(e.target.value)} className="w-full sm:w-auto bg-surface-container-high border border-outline-variant/20 rounded-xl text-body-sm text-on-surface py-2 px-3 focus:outline-none cursor-pointer">
                             <option value="All">All Projects</option>
                             {clientProjects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
                         </select>
-                        <select value={freelancerFilter} onChange={e => setFreelancerFilter(e.target.value)} className="bg-surface-container-high border border-outline-variant/20 rounded-xl text-body-sm text-on-surface py-2 px-3 focus:outline-none cursor-pointer">
+                        <select value={freelancerFilter} onChange={e => setFreelancerFilter(e.target.value)} className="w-full sm:w-auto bg-surface-container-high border border-outline-variant/20 rounded-xl text-body-sm text-on-surface py-2 px-3 focus:outline-none cursor-pointer">
                             <option value="All">All Freelancers</option>
                             {clientFreelancers.map(freelancer => <option key={freelancer.id} value={freelancer.id}>{freelancer.name}</option>)}
                         </select>
@@ -281,7 +281,7 @@ const Invoices = () => {
             <Card className="overflow-visible">
                 {filtered.length === 0 ? (
                     <div className="text-center py-16 text-on-surface-variant">
-                        <Receipt className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                        <ReceiptIndianRupee className="w-12 h-12 mx-auto mb-4 opacity-20" />
                         <p className="font-bold">No invoices found</p>
                         <p className="text-body-sm mt-1">{user?.role === 'freelancer' ? 'Client-created payment documents will appear here.' : 'Create your first invoice to get started.'}</p>
                     </div>
@@ -338,7 +338,7 @@ const Invoices = () => {
                                                         onClick={(e) => e.stopPropagation()}
                                                     >
                                                         {[
-                                                            { action: 'view', label: 'View Details', icon: Receipt, always: true },
+                                                            { action: 'view', label: 'View Details', icon: ReceiptIndianRupee, always: true },
                                                             { action: 'pdf', label: 'Download PDF', icon: Download, always: true },
                                                             { action: 'edit', label: 'Edit', icon: Edit2, show: user?.role !== 'freelancer' && inv.status === 'Draft' },
                                                             { action: 'send', label: 'Mark as Sent', icon: Send, show: user?.role !== 'freelancer' && ['Draft'].includes(inv.status) },
@@ -388,7 +388,7 @@ const Invoices = () => {
                                         <p className="font-bold text-on-surface-variant">{inv.client?.fullName || 'No Client'}</p>
                                         {inv.project && <p className="text-[11px] text-on-surface-variant/80">{inv.project.name}</p>}
                                     </div>
-                                    <div className="grid grid-cols-2 gap-2 p-3 bg-surface-variant/20 rounded-xl mb-3 border border-outline-variant/10">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 bg-surface-variant/20 rounded-xl mb-3 border border-outline-variant/10">
                                         <div>
                                             <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Total</p>
                                             <p className="font-bold text-on-surface">{INR(inv.total)}</p>

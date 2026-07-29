@@ -2,7 +2,6 @@ import React from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { Briefcase, Building, ArrowRight, Sparkles } from 'lucide-react';
 import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
 import { useUser } from '../context/UserContext';
 
 const RoleSelection = () => {

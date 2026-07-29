@@ -161,7 +161,7 @@ const ProjectFilesTab = ({ project }) => {
             {/* Search and Filters */}
             <div className="space-y-3">
                 <div className="relative">
-                    <Search className="absolute left-3 top-2.5 w-4 h-4 text-on-surface-variant" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant pointer-events-none" />
                     <input
                         type="text"
                         placeholder="Search project files..."

@@ -27,6 +27,7 @@ const AttachmentSchema = new mongoose.Schema({
 
 const TaskSchema = new mongoose.Schema({
     title: { type: String, required: true },
+    description: { type: String, default: '' },
     projectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', required: true },
     priority: { type: String, enum: ['High', 'Medium', 'Normal', 'Low'], default: 'Normal' },
     deadline: { type: String, default: '' },

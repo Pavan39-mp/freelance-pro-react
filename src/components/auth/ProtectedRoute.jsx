@@ -6,7 +6,11 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user, loading } = useUser();
 
     if (loading) {
-        return null; // Or a custom loader
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background" role="status" aria-live="polite">
+                <span className="text-body-sm text-on-surface-variant">Loading your workspace…</span>
+            </div>
+        );
     }
 
     if (!user) {

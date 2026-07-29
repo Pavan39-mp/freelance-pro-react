@@ -153,10 +153,10 @@ const Notes = () => {
             </div>
 
             {/* Toolbar filters */}
-            <div className="flex flex-wrap gap-4 p-4 bg-surface-container-low/30 rounded-2xl border border-outline-variant/10">
+            <div className="flex flex-col md:flex-row md:flex-wrap gap-4 p-4 bg-surface-container-low/30 rounded-2xl border border-outline-variant/10">
                 {/* Search */}
-                <div className="relative flex-1 min-w-[240px]">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
+                <div className="relative w-full min-w-0 md:flex-1 md:min-w-[240px]">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant pointer-events-none" />
                     <input
                         type="text"
                         placeholder="Search notes..."
@@ -170,7 +170,7 @@ const Notes = () => {
                 <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="bg-surface-container-high border border-outline-variant/20 rounded-xl text-body-sm text-on-surface py-2 px-3 focus:outline-none cursor-pointer"
+                    className="w-full md:w-auto bg-surface-container-high border border-outline-variant/20 rounded-xl text-body-sm text-on-surface py-2 px-3 focus:outline-none cursor-pointer"
                 >
                     <option value="All">All Categories</option>
                     {categories.filter(c => c !== 'All').map(cat => (
@@ -182,7 +182,7 @@ const Notes = () => {
                 <select
                     value={selectedPriority}
                     onChange={(e) => setSelectedPriority(e.target.value)}
-                    className="bg-surface-container-high border border-outline-variant/20 rounded-xl text-body-sm text-on-surface py-2 px-3 focus:outline-none cursor-pointer"
+                    className="w-full md:w-auto bg-surface-container-high border border-outline-variant/20 rounded-xl text-body-sm text-on-surface py-2 px-3 focus:outline-none cursor-pointer"
                 >
                     <option value="All">All Priorities</option>
                     <option value="High">High</option>

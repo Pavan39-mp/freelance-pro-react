@@ -1,10 +1,54 @@
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import User from '../models/User.js';
+import { sendEmail } from '../services/emailService.js';
+import {
+    isAvailabilityType,
+    isExperienceLevel,
+    normalizeFreelancerRecord,
+    normalizeLegacyFreelancers,
+    toProfileNumber
+} from '../utils/freelancerProfile.js';
 
 const normalizeRole = (role) => {
     const normalized = String(role || '').trim().toLowerCase();
     return ['client', 'freelancer'].includes(normalized) ? normalized : null;
 };
+
+const isStrongPassword = (password) =>
+    typeof password === 'string' &&
+    password.length >= 8 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /\d/.test(password) &&
+    /[^A-Za-z0-9]/.test(password);
+
+const publicUser = (user) => {
+    const object = user.toObject ? user.toObject() : user;
+    const safeUser = { ...object };
+    delete safeUser.password;
+    delete safeUser.resetPasswordToken;
+    delete safeUser.resetPasswordExpires;
+    delete safeUser.__v;
+    delete safeUser.experience;
+    delete safeUser.availability;
+    if (normalizeRole(safeUser.role) === 'freelancer') {
+        Object.assign(safeUser, normalizeFreelancerRecord(safeUser));
+    }
+    return { ...safeUser, role: normalizeRole(safeUser.role) };
+};
+
+const FREELANCER_FIELDS = [
+    'skills',
+    'services',
+    'portfolio',
+    'title',
+    'isPublicProfile',
+    'experienceLevel',
+    'experienceYears',
+    'availabilityType',
+    'availableHoursPerWeek'
+];
 
 // Helper to generate JWT
 const generateToken = (id) => {
@@ -18,21 +62,39 @@ const generateToken = (id) => {
 // @access  Public
 export const registerUser = async (req, res, next) => {
     try {
-        const { fullName, email, password, role } = req.body;
+        const fullName = String(req.body.fullName || '').trim();
+        const { password } = req.body;
+        const email = String(req.body.email || '').trim().toLowerCase();
+        const userRole = normalizeRole(req.body.role);
 
-        if (!fullName || !email || !password) {
-            res.status(400);
-            throw new Error('Please enter all fields');
+        if (!fullName) {
+            return res.status(400).json({ success: false, message: 'Full name is required.', data: null });
+        }
+        if (!email) {
+            return res.status(400).json({ success: false, message: 'Email is required.', data: null });
+        }
+        if (!password) {
+            return res.status(400).json({ success: false, message: 'Password is required.', data: null });
+        }
+        if (!userRole) {
+            return res.status(400).json({ success: false, message: 'Role must be client or freelancer.', data: null });
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return res.status(400).json({ success: false, message: 'Please enter a valid email address.', data: null });
+        }
+        if (!isStrongPassword(password)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must be at least 8 characters and include uppercase, lowercase, number, and special character.',
+                data: null
+            });
         }
 
         const userExists = await User.findOne({ email });
 
         if (userExists) {
-            res.status(400);
-            throw new Error('User already exists');
+            return res.status(400).json({ success: false, message: 'An account with this email already exists.', data: null });
         }
-
-        const userRole = normalizeRole(role) || 'freelancer';
 
         const user = await User.create({
             fullName,
@@ -59,6 +121,9 @@ export const registerUser = async (req, res, next) => {
             throw new Error('Invalid user data');
         }
     } catch (error) {
+        if (error?.code === 11000) {
+            return res.status(400).json({ success: false, message: 'An account with this email already exists.', data: null });
+        }
         next(error);
     }
 };
@@ -68,11 +133,29 @@ export const registerUser = async (req, res, next) => {
 // @access  Public
 export const loginUser = async (req, res, next) => {
     try {
-        const { email, password } = req.body;
+        const email = String(req.body.email || '').trim().toLowerCase();
+        const { password } = req.body;
+        const requestedRole = normalizeRole(req.body.role);
+
+        if (!email || !password || !requestedRole) {
+            return res.status(400).json({ success: false, message: 'Email, password, and a valid role are required.', data: null });
+        }
 
         const user = await User.findOne({ email });
 
         if (user && (await user.matchPassword(password))) {
+            const actualRole = normalizeRole(user.role);
+            if (!actualRole) {
+                return res.status(403).json({ success: false, message: 'This account has an invalid role.', data: null });
+            }
+            if (actualRole !== requestedRole) {
+                const actualLabel = actualRole === 'client' ? 'Client' : 'Freelancer';
+                return res.status(403).json({
+                    success: false,
+                    message: `Role mismatch: this account is registered as a ${actualLabel}.`,
+                    data: null
+                });
+            }
             res.json({
                 success: true,
                 message: 'Login successful',
@@ -80,7 +163,7 @@ export const loginUser = async (req, res, next) => {
                     _id: user._id,
                     fullName: user.fullName,
                     email: user.email,
-                    role: normalizeRole(user.role),
+                    role: actualRole,
                     token: generateToken(user._id),
                 },
             });
@@ -98,16 +181,16 @@ export const loginUser = async (req, res, next) => {
 // @access  Private
 export const getUserProfile = async (req, res, next) => {
     try {
+        if (req.user.role === 'freelancer') {
+            await normalizeLegacyFreelancers(User, { _id: req.user._id });
+        }
         const user = await User.findById(req.user._id);
 
         if (user) {
             res.json({
                 success: true,
                 message: 'User profile retrieved successfully',
-                data: {
-                    ...user.toObject(),
-                    role: normalizeRole(user.role),
-                },
+                data: publicUser(user),
             });
         } else {
             res.status(404);
@@ -123,6 +206,13 @@ export const getUserProfile = async (req, res, next) => {
 // @access  Private
 export const updateUserProfile = async (req, res, next) => {
     try {
+        const requestedFreelancerFields = FREELANCER_FIELDS.filter((field) => req.body[field] !== undefined);
+        if (requestedFreelancerFields.length && req.user.role !== 'freelancer') {
+            return res.status(403).json({ success: false, message: 'Clients cannot update freelancer profile fields.', data: null });
+        }
+        if (req.user.role === 'freelancer') {
+            await normalizeLegacyFreelancers(User, { _id: req.user._id });
+        }
         const user = await User.findById(req.user._id);
 
         if (user) {
@@ -131,14 +221,41 @@ export const updateUserProfile = async (req, res, next) => {
             user.company = req.body.company !== undefined ? req.body.company : user.company;
             user.avatar = req.body.avatar || user.avatar;
             user.location = req.body.location !== undefined ? req.body.location : user.location;
-            user.skills = req.body.skills !== undefined ? req.body.skills : user.skills;
-            user.isPublicProfile = req.body.isPublicProfile !== undefined ? req.body.isPublicProfile : user.isPublicProfile;
-            user.services = req.body.services !== undefined ? req.body.services : user.services;
-            user.experience = req.body.experience !== undefined ? req.body.experience : user.experience;
-            user.portfolio = req.body.portfolio !== undefined ? req.body.portfolio : user.portfolio;
-            user.availability = req.body.availability !== undefined ? req.body.availability : user.availability;
             user.bio = req.body.bio !== undefined ? req.body.bio : user.bio;
-            user.title = req.body.title !== undefined ? req.body.title : user.title;
+
+            if (req.user.role === 'freelancer') {
+                user.skills = req.body.skills !== undefined ? req.body.skills : user.skills;
+                user.isPublicProfile = req.body.isPublicProfile !== undefined ? req.body.isPublicProfile : user.isPublicProfile;
+                user.services = req.body.services !== undefined ? req.body.services : user.services;
+                user.portfolio = req.body.portfolio !== undefined ? req.body.portfolio : user.portfolio;
+                user.title = req.body.title !== undefined ? req.body.title : user.title;
+                if (req.body.experienceLevel !== undefined) {
+                    if (!isExperienceLevel(req.body.experienceLevel)) {
+                        return res.status(400).json({ success: false, message: 'Invalid experience level.', data: null });
+                    }
+                    user.experienceLevel = req.body.experienceLevel;
+                }
+                if (req.body.availabilityType !== undefined) {
+                    if (!isAvailabilityType(req.body.availabilityType)) {
+                        return res.status(400).json({ success: false, message: 'Invalid availability type.', data: null });
+                    }
+                    user.availabilityType = req.body.availabilityType;
+                }
+                if (req.body.experienceYears !== undefined) {
+                    const years = toProfileNumber(req.body.experienceYears, Number.NaN);
+                    if (!Number.isFinite(years) || years < 0) {
+                        return res.status(400).json({ success: false, message: 'Years of experience must be 0 or greater.', data: null });
+                    }
+                    user.experienceYears = years;
+                }
+                if (req.body.availableHoursPerWeek !== undefined) {
+                    const hours = toProfileNumber(req.body.availableHoursPerWeek, Number.NaN);
+                    if (!Number.isFinite(hours) || hours < 0 || hours > 168) {
+                        return res.status(400).json({ success: false, message: 'Available hours per week must be between 0 and 168.', data: null });
+                    }
+                    user.availableHoursPerWeek = hours;
+                }
+            }
 
             if (req.body.password) {
                 const { currentPassword } = req.body;
@@ -151,6 +268,14 @@ export const updateUserProfile = async (req, res, next) => {
                 if (!isMatch) {
                     res.status(401);
                     throw new Error('Current password is incorrect');
+                }
+
+                if (!isStrongPassword(req.body.password)) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'New password must be at least 8 characters and include uppercase, lowercase, number, and special character.',
+                        data: null
+                    });
                 }
 
                 user.password = req.body.password;
@@ -172,7 +297,7 @@ export const updateUserProfile = async (req, res, next) => {
             res.json({
                 success: true,
                 message: 'Profile updated successfully',
-                data: updatedUser,
+                data: publicUser(updatedUser),
             });
         } else {
             res.status(404);
@@ -199,21 +324,43 @@ export const logoutUser = async (req, res) => {
 // @access  Public
 export const forgotPassword = async (req, res, next) => {
     try {
-        const { email } = req.body;
-        const user = await User.findOne({ email });
-
-        if (!user) {
-            res.status(404);
-            throw new Error('User with this email not found');
+        const email = String(req.body.email || '').trim().toLowerCase();
+        if (!email) {
+            return res.status(400).json({ success: false, message: 'Email is required', data: null });
         }
 
-        // In a production app, generate recovery token and send email.
-        // For now, we simulate this and return a simulated success.
-        console.log(`[BACKEND EMAIL SIMULATION] Password reset requested for: ${email}`);
+        const user = await User.findOne({ email }).select('+resetPasswordToken +resetPasswordExpires');
+
+        // Do not reveal whether an account exists for a supplied email address.
+        if (user) {
+            const rawToken = crypto.randomBytes(32).toString('hex');
+            user.resetPasswordToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+            user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);
+            await user.save({ validateBeforeSave: false });
+
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+            const resetUrl = `${frontendUrl}/reset-password?token=${rawToken}`;
+            const emailResult = await sendEmail({
+                to: user.email,
+                subject: 'Reset your FreelancePro password',
+                html: `<p>You requested a password reset.</p><p><a href="${resetUrl}">Reset your password</a></p><p>This link expires in 15 minutes.</p>`
+            });
+
+            if (!emailResult.success) {
+                user.resetPasswordToken = undefined;
+                user.resetPasswordExpires = undefined;
+                await user.save({ validateBeforeSave: false });
+                return res.status(503).json({
+                    success: false,
+                    message: 'Password reset email is temporarily unavailable. Please try again later.',
+                    data: null
+                });
+            }
+        }
 
         res.json({
             success: true,
-            message: 'Password reset link sent to your email',
+            message: 'If an account exists for that email, a password reset link has been sent.',
             data: null,
         });
     } catch (error) {
@@ -226,15 +373,27 @@ export const forgotPassword = async (req, res, next) => {
 // @access  Public
 export const resetPassword = async (req, res, next) => {
     try {
-        const { email, password } = req.body;
-        const user = await User.findOne({ email });
+        const { token, password } = req.body;
+        if (!token || !isStrongPassword(password)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Provide a valid reset token and a strong password.',
+                data: null
+            });
+        }
+        const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+        const user = await User.findOne({
+            resetPasswordToken: tokenHash,
+            resetPasswordExpires: { $gt: new Date() }
+        }).select('+resetPasswordToken +resetPasswordExpires');
 
         if (!user) {
-            res.status(404);
-            throw new Error('User with this email not found');
+            return res.status(400).json({ success: false, message: 'Password reset token is invalid or has expired.', data: null });
         }
 
         user.password = password;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
         await user.save();
 
         res.json({

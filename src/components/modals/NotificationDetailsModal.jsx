@@ -1,11 +1,27 @@
 import React, { useEffect } from 'react';
-import { X, Bell } from 'lucide-react';
+import { X, Bell, ExternalLink, Video } from 'lucide-react';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import { getIcon, getIconBg } from '../../utils/notificationUtils';
 import { useNotifications } from '../../context/NotificationContext';
 
 const NotificationDetailsModal = ({ notification, isOpen, onClose, variant = 'modal' }) => {
   const { markAsRead } = useNotifications();
+  const navigate = useNavigate();
+  const meeting = notification?.meeting;
+  const meetingId = meeting?._id || meeting?.id;
+  const hasMeetingLink = (() => {
+    try {
+      const url = new URL(meeting?.joinUrl);
+      return ['http:', 'https:'].includes(url.protocol);
+    } catch {
+      return false;
+    }
+  })();
+  const openMeetingDetails = () => {
+    onClose();
+    navigate(`/client/meetings?meetingId=${meetingId}`);
+  };
 
   // Close on Escape key
   useEffect(() => {
@@ -107,6 +123,16 @@ const NotificationDetailsModal = ({ notification, isOpen, onClose, variant = 'mo
               </div>
             </div>
           </div>
+          {meetingId && (
+            <div className="flex gap-2">
+              <button type="button" onClick={openMeetingDetails} className="flex-1 rounded-xl border border-outline-variant/30 px-3 py-2 text-body-sm font-bold text-on-surface">Meeting Details</button>
+              {hasMeetingLink ? (
+                <a href={meeting.joinUrl} target="_blank" rel="noopener noreferrer" className="flex flex-1 items-center justify-center gap-1 rounded-xl bg-primary px-3 py-2 text-body-sm font-bold text-on-primary">Join <ExternalLink className="h-4 w-4" /></a>
+              ) : (
+                <button type="button" disabled className="flex-1 rounded-xl bg-surface-variant px-3 py-2 text-body-sm font-bold text-on-surface-variant opacity-60">Invalid link</button>
+              )}
+            </div>
+          )}
         </div>
       </>
     );
@@ -163,7 +189,7 @@ const NotificationDetailsModal = ({ notification, isOpen, onClose, variant = 'mo
           {/* Information Grid */}
           <div className="bg-surface-container-low rounded-2xl p-5 border border-outline-variant/10">
             <h4 className="text-[10px] text-on-surface-variant tracking-widest font-bold mb-4 border-b border-outline-variant/10 pb-2">Information</h4>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
               {notification.clientName ? (
                 <div>
                   <p className="text-[10px] text-on-surface-variant font-bold mb-1">Client</p>
@@ -211,16 +237,29 @@ const NotificationDetailsModal = ({ notification, isOpen, onClose, variant = 'mo
               </div>
             </div>
           </div>
+          {meetingId && (
+            <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-low p-5">
+              <h4 className="mb-3 flex items-center gap-2 text-body-sm font-bold text-on-surface"><Video className="h-4 w-4 text-primary" />{meeting.title}</h4>
+              <p className="text-body-sm text-on-surface-variant">{meeting.date} at {meeting.time} · {meeting.duration || 30} minutes · {meeting.provider}</p>
+              {meeting.agenda && <p className="mt-3 whitespace-pre-wrap break-words text-body-sm text-on-surface">{meeting.agenda}</p>}
+            </div>
+          )}
         </div>
 
         {/* Actions */}
-        <div className="flex justify-center shrink-0">
+        <div className="flex flex-col-reverse sm:flex-row justify-center gap-3 shrink-0">
           <button
             onClick={onClose}
             className="px-8 py-2.5 bg-surface-variant text-on-surface rounded-xl font-label-caps text-label-caps font-bold hover:bg-surface-variant/80 transition-colors"
           >
             Close
           </button>
+          {meetingId && <button type="button" onClick={openMeetingDetails} className="px-6 py-2.5 rounded-xl border border-outline-variant/30 text-on-surface font-label-caps text-label-caps font-bold">Meeting Details</button>}
+          {meetingId && (hasMeetingLink ? (
+            <a href={meeting.joinUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-2.5 font-label-caps text-label-caps font-bold text-on-primary">Join Meeting <ExternalLink className="h-4 w-4" /></a>
+          ) : (
+            <button type="button" disabled className="rounded-xl bg-surface-variant px-6 py-2.5 font-bold text-on-surface-variant opacity-60">Invalid meeting link</button>
+          ))}
         </div>
       </div>
     </div>

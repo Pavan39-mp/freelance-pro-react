@@ -5,7 +5,10 @@ const NotificationSchema = new mongoose.Schema({
     title: { type: String, required: true },
     message: { type: String, required: true },
     read: { type: Boolean, default: false },
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    meeting: { type: mongoose.Schema.Types.ObjectId, ref: 'Meeting', default: null },
+    link: { type: String, default: '' }
 }, { timestamps: true });
 
 const Notification = mongoose.model('Notification', NotificationSchema);

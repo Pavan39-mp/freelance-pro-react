@@ -1,11 +1,20 @@
 import api from './api';
 
 export const register = async (fullName, email, password, role) => {
-    return await api.post('/auth/register', { fullName, email, password, role });
+    return await api.post('/auth/register', {
+        fullName: String(fullName || '').trim(),
+        email: String(email || '').trim().toLowerCase(),
+        password,
+        role: String(role || '').trim().toLowerCase(),
+    });
 };
 
-export const login = async (email, password) => {
-    return await api.post('/auth/login', { email, password });
+export const login = async (email, password, role) => {
+    return await api.post('/auth/login', {
+        email: String(email || '').trim().toLowerCase(),
+        password,
+        role: String(role || '').trim().toLowerCase(),
+    });
 };
 
 export const logout = async () => {
@@ -25,6 +34,6 @@ export const forgotPassword = async (email) => {
     return await api.post('/auth/forgot-password', { email });
 };
 
-export const resetPassword = async (email, password) => {
-    return await api.post('/auth/reset-password', { email, password });
+export const resetPassword = async (token, password) => {
+    return await api.post('/auth/reset-password', { token, password });
 };

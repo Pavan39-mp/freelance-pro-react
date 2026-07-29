@@ -19,8 +19,10 @@ const Settings = () => {
     isPublicProfile: user?.isPublicProfile || false,
     services: user?.services || '',
     portfolio: user?.portfolio || '',
-    availability: user?.availability || '',
-    experience: user?.experience || '',
+    experienceLevel: user?.experienceLevel || 'entry',
+    experienceYears: user?.experienceYears ?? 0,
+    availabilityType: user?.availabilityType || 'as-needed',
+    availableHoursPerWeek: user?.availableHoursPerWeek ?? 0,
     bio: user?.bio || '',
     title: user?.title || '',
     location: user?.location || ''
@@ -46,16 +48,43 @@ const Settings = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  useEffect(() => {
+    if (!user) return;
+    setPublicData({
+      isPublicProfile: user.isPublicProfile || false,
+      services: user.services || '',
+      portfolio: user.portfolio || '',
+      experienceLevel: user.experienceLevel || 'entry',
+      experienceYears: user.experienceYears ?? 0,
+      availabilityType: user.availabilityType || 'as-needed',
+      availableHoursPerWeek: user.availableHoursPerWeek ?? 0,
+      bio: user.bio || '',
+      title: user.title || '',
+      location: user.location || ''
+    });
+  }, [user]);
+
   const handlePublicProfileSave = async (e) => {
     e.preventDefault();
+    const experienceYears = Number(publicData.experienceYears);
+    const availableHoursPerWeek = Number(publicData.availableHoursPerWeek);
+    if (user?.role === 'freelancer' && (!Number.isFinite(experienceYears) || experienceYears < 0)) {
+      return toast.error('Years of experience must be 0 or greater');
+    }
+    if (user?.role === 'freelancer' && (!Number.isFinite(availableHoursPerWeek) || availableHoursPerWeek < 0 || availableHoursPerWeek > 168)) {
+      return toast.error('Available hours per week must be between 0 and 168');
+    }
     try {
-      const res = await updateUser(publicData);
+      const freelancerData = user?.role === 'freelancer'
+        ? { ...publicData, experienceYears, availableHoursPerWeek }
+        : Object.fromEntries(Object.entries(publicData).filter(([key]) => !['experienceLevel', 'experienceYears', 'availabilityType', 'availableHoursPerWeek'].includes(key)));
+      const res = await updateUser(freelancerData);
       if (res.success) {
         toast.success("Public Profile updated successfully");
       } else {
         toast.error(res.message || "Failed to update profile");
       }
-    } catch (err) {
+    } catch {
       toast.error("An error occurred");
     }
   };
@@ -283,26 +312,32 @@ const Settings = () => {
                         placeholder="e.g. New York, USA or Remote"
                       />
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-body-sm font-semibold text-on-surface ml-1">Years of Experience</label>
-                      <input
-                        type="text"
-                        value={publicData.experience}
-                        onChange={(e) => setPublicData({ ...publicData, experience: e.target.value })}
-                        className="w-full h-12 bg-surface-variant/30 border border-outline-variant/30 rounded-xl px-4 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all font-body-md"
-                        placeholder="e.g. 8+ Years"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-body-sm font-semibold text-on-surface ml-1">Availability</label>
-                      <input
-                        type="text"
-                        value={publicData.availability}
-                        onChange={(e) => setPublicData({ ...publicData, availability: e.target.value })}
-                        className="w-full h-12 bg-surface-variant/30 border border-outline-variant/30 rounded-xl px-4 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all font-body-md"
-                        placeholder="e.g. 20 hrs/week"
-                      />
-                    </div>
+                    {user?.role === 'freelancer' && <>
+                      <div className="space-y-1">
+                        <label className="text-body-sm font-semibold text-on-surface ml-1">Experience Level *</label>
+                        <select required value={publicData.experienceLevel} onChange={(e) => setPublicData({ ...publicData, experienceLevel: e.target.value })} className="w-full h-12 bg-surface-variant/30 border border-outline-variant/30 rounded-xl px-4 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all font-body-md">
+                          <option value="entry">Entry Level</option>
+                          <option value="intermediate">Intermediate</option>
+                          <option value="expert">Expert</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-body-sm font-semibold text-on-surface ml-1">Years of Experience *</label>
+                        <input required type="number" min="0" value={publicData.experienceYears} onChange={(e) => setPublicData({ ...publicData, experienceYears: e.target.value })} className="w-full h-12 bg-surface-variant/30 border border-outline-variant/30 rounded-xl px-4 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all font-body-md" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-body-sm font-semibold text-on-surface ml-1">Availability Type *</label>
+                        <select required value={publicData.availabilityType} onChange={(e) => setPublicData({ ...publicData, availabilityType: e.target.value })} className="w-full h-12 bg-surface-variant/30 border border-outline-variant/30 rounded-xl px-4 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all font-body-md">
+                          <option value="full-time">Full Time</option>
+                          <option value="part-time">Part Time</option>
+                          <option value="as-needed">As Needed</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-body-sm font-semibold text-on-surface ml-1">Available Hours Per Week *</label>
+                        <input required type="number" min="0" max="168" value={publicData.availableHoursPerWeek} onChange={(e) => setPublicData({ ...publicData, availableHoursPerWeek: e.target.value })} className="w-full h-12 bg-surface-variant/30 border border-outline-variant/30 rounded-xl px-4 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all font-body-md" />
+                      </div>
+                    </>}
                   </div>
 
                   <div className="space-y-1">

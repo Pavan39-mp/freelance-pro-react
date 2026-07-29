@@ -9,6 +9,12 @@ const calcTotals = (items, taxRate, discount) => {
     return { subtotal, taxAmount, total };
 };
 
+const parseDate = (value) => {
+    if (value === undefined || value === null || value === '') return null;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+};
+
 // GET /api/invoices
 export const getInvoices = async (req, res) => {
     try {
@@ -48,9 +54,18 @@ export const getRevenueSummary = async (req, res) => {
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
         const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
-        // Optional date range for filtering revenue metrics
-        const startDate = req.query.startDate ? new Date(req.query.startDate) : null;
-        const endDate = req.query.endDate ? new Date(req.query.endDate + 'T23:59:59') : null;
+        // Optional date range for filtering revenue metrics. Analytics sends full
+        // ISO timestamps, so parse each value once and never append a second time.
+        const hasStartDate = req.query.startDate !== undefined && req.query.startDate !== '';
+        const hasEndDate = req.query.endDate !== undefined && req.query.endDate !== '';
+        const startDate = parseDate(req.query.startDate);
+        const endDate = parseDate(req.query.endDate);
+        if ((hasStartDate && !startDate) || (hasEndDate && !endDate)) {
+            return res.status(400).json({ message: 'Invalid startDate or endDate' });
+        }
+        if (startDate && endDate && startDate > endDate) {
+            return res.status(400).json({ message: 'startDate must be earlier than or equal to endDate' });
+        }
 
         // Fetch all non-cancelled invoices
         const invFilter = req.user.role === 'freelancer'
@@ -62,7 +77,9 @@ export const getRevenueSummary = async (req, res) => {
             .lean();
 
         // Fetch all payments (with date-range filter applied)
-        const paymentFilter = { createdBy: userId };
+        const paymentFilter = req.user.role === 'freelancer'
+            ? { invoice: { $in: all.map(invoice => invoice._id) } }
+            : { createdBy: userId };
         if (startDate || endDate) {
             paymentFilter.paymentDate = {};
             if (startDate) paymentFilter.paymentDate.$gte = startDate;
@@ -87,7 +104,8 @@ export const getRevenueSummary = async (req, res) => {
         // Process payments for revenue, method distribution, etc.
         allPayments.forEach(p => {
             totalRevenue += p.amount;
-            if (new Date(p.paymentDate) >= monthStart && new Date(p.paymentDate) <= monthEnd) {
+            const paymentDate = parseDate(p.paymentDate);
+            if (paymentDate && paymentDate >= monthStart && paymentDate <= monthEnd) {
                 paidThisMonth += p.amount;
             }
             // Method distribution
@@ -166,7 +184,9 @@ export const getRevenueSummary = async (req, res) => {
             projectRevenue,
             statusDistribution,
             paidVsOutstanding,
-            methodDistribution
+            methodDistribution,
+            invoiceCount: all.length,
+            paymentCount: allPayments.length
         });
     } catch (err) {
         res.status(500).json({ message: err.message });

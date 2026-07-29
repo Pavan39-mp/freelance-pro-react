@@ -18,7 +18,7 @@ const Login = () => {
       ? sessionStorage.getItem('freelancepro_selected_role')
       : null);
 
-  const { login, logout, user } = useUser();
+  const { login, user } = useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -58,27 +58,16 @@ const Login = () => {
 
     setLoading(true);
     try {
-      const res = await login(email, password);
+      const res = await login(email, password, roleType);
       if (res.success) {
-        // Role mismatch check: DB role must match the role chosen at Role Selection
         const actualRole = res.role;
-        if (actualRole && roleType && actualRole !== roleType) {
-          const actualLabel = actualRole === 'client' ? 'Client' : 'Freelancer';
-          const selectedLabel = roleType === 'client' ? 'Client' : 'Freelancer';
-          toast.error(
-            `This account is registered as a ${actualLabel}. Please go back and select ${actualLabel} from the Role Selection screen.`,
-            { duration: 5000 }
-          );
-          await logout();
-          return;
-        }
         toast.success('Welcome back!');
         sessionStorage.removeItem('freelancepro_selected_role');
         navigate(actualRole === 'client' ? '/client-dashboard' : '/freelancer/dashboard', { replace: true });
       } else {
         toast.error(res.message || 'Invalid email or password');
       }
-    } catch (err) {
+    } catch {
       toast.error('An error occurred during login. Please try again.');
     } finally {
       setLoading(false);
@@ -169,13 +158,14 @@ const Login = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   leftIcon={Mail}
+                  className="!pl-12 !pr-4"
                   placeholder="alex@example.com"
                 />
 
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center -mb-2">
+                  <div className="flex justify-between items-center">
                     <label className="font-label-caps text-label-caps text-on-surface-variant ml-1" htmlFor="password">Password *</label>
-                    <a href="#" className="font-label-caps text-label-caps text-primary hover:underline">Forgot?</a>
+                    <Link to="/forgot-password" className="font-label-caps text-label-caps text-primary hover:underline">Forgot?</Link>
                   </div>
                   <Input
                     id="password"
@@ -184,6 +174,7 @@ const Login = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     leftIcon={Lock}
+                    className="!pl-12 !pr-12"
                     rightIcon={
                       <button
                         type="button"
@@ -205,8 +196,9 @@ const Login = () => {
                 <Button
                   type="submit"
                   className="w-full py-4 flex items-center justify-center gap-2 group"
+                  disabled={loading}
                 >
-                  Sign In
+                  {loading ? 'Signing In…' : 'Sign In'}
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </form>

@@ -88,7 +88,7 @@ const TaskDetailsDrawer = ({ task, onClose }) => {
         onClick={onClose}
       ></div>
 
-      <div className="fixed top-0 right-0 h-full w-full max-w-[600px] bg-surface-container border-l border-outline-variant/20 shadow-2xl z-[90] flex flex-col animate-in slide-in-from-right duration-300">
+      <div className="fixed top-0 right-0 h-full w-full max-w-full sm:max-w-[600px] bg-surface-container border-l border-outline-variant/20 shadow-2xl z-[90] flex flex-col animate-in slide-in-from-right duration-300 overflow-x-hidden">
 
         {/* Header */}
         <div className="p-6 border-b border-outline-variant/10 flex justify-between items-start bg-surface-container-low/50">
@@ -114,7 +114,7 @@ const TaskDetailsDrawer = ({ task, onClose }) => {
         </div>
 
         {/* Metadata Bar */}
-        <div className="px-6 py-4 border-b border-outline-variant/10 grid grid-cols-2 md:grid-cols-4 gap-4 bg-surface-container">
+        <div className="px-4 sm:px-6 py-4 border-b border-outline-variant/10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-surface-container">
           <div className="flex flex-col gap-1">
             <label className="text-[10px] font-bold tracking-wider text-on-surface-variant">Status</label>
             <div className="relative">

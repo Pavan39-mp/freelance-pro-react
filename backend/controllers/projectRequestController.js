@@ -16,6 +16,17 @@ export const createRequest = async (req, res) => {
         }
 
         const { freelancerId, title, description, budget, deadline } = req.body;
+        const normalizedTitle = typeof title === 'string' ? title.trim() : '';
+        const numericBudget = Number(budget);
+        const deadlineDate = new Date(deadline);
+
+        if (!normalizedTitle || !description?.trim() || !Number.isFinite(numericBudget) || numericBudget <= 0 || Number.isNaN(deadlineDate.getTime()) || deadlineDate <= new Date()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Provide a title, description, positive budget, and a future deadline.',
+                data: null
+            });
+        }
 
         // Verify freelancer exists and is a freelancer
         const freelancer = await User.findById(freelancerId);
@@ -40,6 +51,7 @@ export const createRequest = async (req, res) => {
         const existingRequest = await ProjectRequest.findOne({
             client: req.user._id,
             freelancer: freelancerId,
+            title: normalizedTitle,
             status: 'pending'
         });
 
@@ -54,10 +66,10 @@ export const createRequest = async (req, res) => {
         const projectRequest = await ProjectRequest.create({
             client: req.user._id, // Enforce client identity securely
             freelancer: freelancerId,
-            title,
+            title: normalizedTitle,
             description,
-            budget,
-            deadline,
+            budget: numericBudget,
+            deadline: deadlineDate,
             status: 'pending'
         });
 

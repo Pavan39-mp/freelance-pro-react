@@ -146,7 +146,7 @@ const ProjectRequests = () => {
 
                                 {/* Actions Area */}
                                 {req.status === 'pending' && (
-                                    <div className="flex items-center gap-3 shrink-0">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
                                         {user?.role === 'client' ? (
                                             <Button
                                                 variant="outlined"
