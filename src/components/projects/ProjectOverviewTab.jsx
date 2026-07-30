@@ -109,17 +109,6 @@ const ProjectOverviewTab = ({ project }) => {
         }
     };
 
-    const handleProgressChange = (val) => {
-        const num = Math.min(100, Math.max(0, Number(val) || 0));
-        setProgress(num);
-    };
-
-    const handleProgressBlur = () => {
-        if (progress !== project.progress) {
-            saveField('progress', progress);
-        }
-    };
-
     const handleAddComment = async (e) => {
         e.preventDefault();
         if (!newComment.trim() || commentsLoading) return;
@@ -278,18 +267,8 @@ const ProjectOverviewTab = ({ project }) => {
                             min="0"
                             max="100"
                             value={progress}
-                            disabled={user?.role === 'client'}
-                            onChange={(e) => setProgress(Number(e.target.value))}
-                            onMouseUp={() => {
-                                if (progress !== project.progress) {
-                                    saveField('progress', progress);
-                                }
-                            }}
-                            onTouchEnd={() => {
-                                if (progress !== project.progress) {
-                                    saveField('progress', progress);
-                                }
-                            }}
+                            disabled
+                            readOnly
                             className="progress-range flex-1 cursor-pointer disabled:cursor-not-allowed"
                         />
                         <input
@@ -297,9 +276,8 @@ const ProjectOverviewTab = ({ project }) => {
                             min="0"
                             max="100"
                             value={progress}
-                            disabled={user?.role === 'client'}
-                            onChange={(e) => handleProgressChange(e.target.value)}
-                            onBlur={handleProgressBlur}
+                            disabled
+                            readOnly
                             className="w-16 bg-surface-container-high border border-outline-variant/20 rounded-xl text-body-sm text-on-surface py-1.5 px-2 text-center focus:ring-1 focus:ring-primary focus:outline-none disabled:bg-surface-container-low disabled:cursor-not-allowed"
                         />
                     </div>

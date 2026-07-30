@@ -216,9 +216,11 @@ export const ProjectProvider = ({ children }) => {
     return projects.map(p => {
       const id = p._id || p.id;
       // Filter tasks by project name or PROJECT ID
-      const projectTasks = tasks.filter(t => t.projectId === id || t.project === p.title);
+      const projectTasks = tasks.filter(t => {
+        const taskProjectId = t.projectId?._id || t.projectId;
+        return String(taskProjectId || '') === String(id) || t.project === p.title;
+      });
 
-      let sumProgress = 0;
       let sumEstimated = 0;
       let sumWorked = 0;
       let completedTasks = 0;
@@ -226,7 +228,6 @@ export const ProjectProvider = ({ children }) => {
       let inProgressTasks = 0;
 
       projectTasks.forEach(t => {
-        sumProgress += (t.progress || 0);
         sumEstimated += (t.estimatedHours || 0);
         sumWorked += (t.workedHours || 0);
 
@@ -236,14 +237,21 @@ export const ProjectProvider = ({ children }) => {
       });
 
       const totalTasks = projectTasks.length;
-      // DO NOT unconditionally override progress for Clients who cannot query tasks.
-      // If the backend has a progress value, use it. Only use computed tasks progress if the user loaded tasks and explicitly needs it.
+      // Use persisted backend progress when tasks are unavailable to the current role.
       let progress = p.progress || 0;
       if (totalTasks > 0) {
-        progress = Math.round(sumProgress / totalTasks);
+        progress = sumEstimated > 0
+          ? Math.min(100, Math.round((sumWorked / sumEstimated) * 100))
+          : 0;
       }
 
       const remainingHours = Math.max(0, sumEstimated - sumWorked);
+      const hoursVariance = Math.abs(sumEstimated - sumWorked);
+      const timeEfficiency = sumWorked > sumEstimated
+        ? `${hoursVariance}h over estimate`
+        : sumWorked < sumEstimated
+          ? `${hoursVariance}h under estimate`
+          : 'On estimate';
 
       return {
         ...p,
@@ -256,6 +264,8 @@ export const ProjectProvider = ({ children }) => {
         inProgressTasks,
         estimatedHours: sumEstimated,
         workedHours: sumWorked,
+        trackedHours: sumWorked,
+        timeEfficiency,
         remainingHours
       };
     });

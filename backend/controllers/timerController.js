@@ -8,7 +8,21 @@ const syncTaskWorkedHours = async (taskId, userId) => {
     const totalSeconds = sessions.reduce((acc, sess) => acc + (sess.duration || 0), 0);
     const totalHours = Number((totalSeconds / 3600).toFixed(2));
     
-    await Task.findOneAndUpdate({ _id: taskId, createdBy: userId }, { workedHours: totalHours });
+    const task = await Task.findOneAndUpdate(
+        { _id: taskId, createdBy: userId },
+        { workedHours: totalHours },
+        { new: true }
+    );
+
+    if (task?.projectId) {
+        const projectTasks = await Task.find({ projectId: task.projectId }).select('estimatedHours workedHours');
+        const estimatedHours = projectTasks.reduce((sum, projectTask) => sum + (Number(projectTask.estimatedHours) || 0), 0);
+        const trackedHours = projectTasks.reduce((sum, projectTask) => sum + (Number(projectTask.workedHours) || 0), 0);
+        const progress = estimatedHours > 0
+            ? Math.min(100, Math.round((trackedHours / estimatedHours) * 100))
+            : 0;
+        await Project.findByIdAndUpdate(task.projectId, { progress });
+    }
     return totalHours;
 };
 

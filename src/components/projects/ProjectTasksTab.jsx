@@ -17,11 +17,12 @@ const ProjectTasksTab = ({ project }) => {
         return taskProjectId?.toString() === currentProjectId?.toString();
     });
 
-    const totalTasks = projectTasks.length;
     const completedTasks = projectTasks.filter(t => t.status === 'Completed').length;
     const inProgressTasks = projectTasks.filter(t => t.status === 'In Progress').length;
     const toDoTasks = projectTasks.filter(t => t.status === 'To Do').length;
     const onHoldTasks = projectTasks.filter(t => t.status === 'On Hold').length;
+    const estimatedHours = projectTasks.reduce((sum, task) => sum + (Number(task.estimatedHours) || 0), 0);
+    const trackedHours = projectTasks.reduce((sum, task) => sum + (Number(task.workedHours) || 0), 0);
 
     const filteredTasks = projectTasks.filter(task => {
         const matchesSearch = (task.title || '').toLowerCase().includes(search.toLowerCase());
@@ -73,7 +74,7 @@ const ProjectTasksTab = ({ project }) => {
                     <p className="text-[9px] uppercase font-bold text-on-surface-variant">Overall Progress</p>
                     <div className="flex items-baseline gap-2 mt-1">
                         <span className="text-xl font-bold font-headline-sm">{project.progress || 0}%</span>
-                        <span className="text-[10px] text-on-surface-variant">({completedTasks}/{totalTasks})</span>
+                        <span className="text-[10px] text-on-surface-variant">{trackedHours}h / {estimatedHours}h</span>
                     </div>
                     <div className="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden mt-1.5">
                         <div className="h-full bg-primary" style={{ width: `${project.progress || 0}%` }}></div>

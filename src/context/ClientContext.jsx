@@ -109,15 +109,19 @@ export const ClientProvider = ({ children }) => {
         else activeProjects++;
       });
 
-      let sumProgress = 0;
+      let sumEstimatedHours = 0;
+      let sumTrackedHours = 0;
       let activeTasks = 0;
 
       clientTasks.forEach(t => {
-        sumProgress += (t.progress || 0);
+        sumEstimatedHours += (Number(t.estimatedHours) || 0);
+        sumTrackedHours += (Number(t.workedHours) || 0);
         if (t.status !== 'Completed') activeTasks++;
       });
 
-      const overallProgress = clientTasks.length > 0 ? Math.round(sumProgress / clientTasks.length) : 0;
+      const overallProgress = sumEstimatedHours > 0
+        ? Math.min(100, Math.round((sumTrackedHours / sumEstimatedHours) * 100))
+        : 0;
 
       let lifetimeBilling = 0;
       clientProjects.forEach(p => {

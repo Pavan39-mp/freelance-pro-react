@@ -157,7 +157,6 @@ export const createProject = async (req, res, next) => {
             deadline,
             priority,
             status,
-            progress,
             tags
         } = req.body;
 
@@ -180,7 +179,7 @@ export const createProject = async (req, res, next) => {
             description: description || '',
             budget: budget || 0,
             hourlyRate: hourlyRate || 0,
-            progress: progress || 0,
+            progress: 0,
             startDate: startDate || '',
             dueDate: dueDate || deadline || '',
             priority: priority || 'Normal',
@@ -245,16 +244,12 @@ export const updateProject = async (req, res, next) => {
             deadline,
             priority,
             status,
-            progress,
             tags
         } = req.body;
 
         const changes = [];
         if (status !== undefined && status !== project.status) changes.push(`Status changed to ${status}`);
         if (priority !== undefined && priority !== project.priority) changes.push(`Priority changed to ${priority}`);
-        if (progress !== undefined && progress !== project.progress) {
-            changes.push(`Progress updated to ${progress}%`);
-        }
         if (budget !== undefined && budget !== project.budget) {
             changes.push(`Budget updated to ₹${Number(budget).toLocaleString('en-IN')}`);
         }
@@ -277,7 +272,6 @@ export const updateProject = async (req, res, next) => {
         if (deadline !== undefined) project.dueDate = deadline;
         if (priority !== undefined) project.priority = priority;
         if (status !== undefined) project.status = status;
-        if (progress !== undefined) project.progress = progress;
         if (tags !== undefined) project.tags = tags;
 
         const updated = await project.save();

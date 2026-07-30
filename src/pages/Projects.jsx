@@ -92,12 +92,12 @@ const Projects = () => {
             // Progress
             const projectProgress = project.progress || 0;
 
-            // Page stats
-            const totalTasks = projectTasks.length;
-
-            const completedTasks = projectTasks.filter(
-              task => task.progress === 100
-            ).length;
+            const hoursVariance = Math.abs(sumEstimated - sumWorked);
+            const timeEfficiency = sumWorked > sumEstimated
+              ? `${hoursVariance}h over estimate`
+              : sumWorked < sumEstimated
+                ? `${hoursVariance}h under estimate`
+                : 'On estimate';
 
             return (
               <Card
@@ -132,15 +132,15 @@ const Projects = () => {
                 {/* Metrics */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
                   <div className="bg-surface-variant/30 p-2.5 rounded-xl border border-outline-variant/10">
-                    <p className="text-[10px] text-on-surface-variant font-bold tracking-wider mb-1">Tasks</p>
-                    <p className="text-body-md font-bold text-on-surface">{completedTasks} / {totalTasks}</p>
+                    <p className="text-[10px] text-on-surface-variant font-bold tracking-wider mb-1">Estimated Time</p>
+                    <p className="text-body-md font-bold text-on-surface">{sumEstimated}h</p>
                   </div>
                   <div className="bg-surface-variant/30 p-2.5 rounded-xl border border-outline-variant/10">
                     <p className="text-[10px] text-on-surface-variant font-bold tracking-wider mb-1 flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" /> Tracked
+                      <Clock className="w-3.5 h-3.5" /> Tracked Time
                     </p>
                     <p className="text-body-md font-bold text-on-surface">
-                      {sumWorked} <span className="text-body-sm text-on-surface-variant font-normal">/ {sumEstimated}h</span>
+                      {sumWorked}h
                     </p>
                   </div>
                 </div>
@@ -149,7 +149,7 @@ const Projects = () => {
                 <div className="space-y-2 mt-1">
                   <div className="flex justify-between items-center text-[10px] font-bold tracking-wider">
                     <span className="text-on-surface-variant flex items-center gap-1">
-                      <Target className="w-3.5 h-3.5" /> True Progress
+                      <Target className="w-3.5 h-3.5" /> Progress
                     </span>
                     <span className="text-primary">{projectProgress}%</span>
                   </div>
@@ -167,7 +167,7 @@ const Projects = () => {
                     </div>
                     <div className="flex items-center gap-1.5 text-on-surface-variant text-[10px] font-bold tracking-wider">
                       <Clock className="w-3.5 h-3.5" />
-                      {sumWorked} / {sumEstimated}h Total
+                      {timeEfficiency}
                     </div>
                   </div>
 
@@ -193,6 +193,14 @@ const Projects = () => {
   const renderClientCard = (project) => {
     // Project Progress from Context, or calculate fallback
     const progress = project.progress || 0;
+    const estimatedHours = Number(project.estimatedHours) || 0;
+    const trackedHours = Number(project.trackedHours ?? project.workedHours) || 0;
+    const hoursVariance = Math.abs(estimatedHours - trackedHours);
+    const timeEfficiency = trackedHours > estimatedHours
+      ? `${hoursVariance}h over estimate`
+      : trackedHours < estimatedHours
+        ? `${hoursVariance}h under estimate`
+        : 'On estimate';
 
     // Freelancer resolution
     const freelancerId = project.createdBy?._id || project.createdBy || 'unknown';
@@ -240,6 +248,11 @@ const Projects = () => {
           </div>
           <div className="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden shadow-inner">
             <div className="h-full bg-primary transition-all duration-1000 ease-out" style={{ width: `${progress}%` }}></div>
+          </div>
+          <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
+            <span className="text-on-surface-variant">Estimated Time: <strong className="text-on-surface">{estimatedHours}h</strong></span>
+            <span className="text-on-surface-variant">Tracked Time: <strong className="text-on-surface">{trackedHours}h</strong></span>
+            <span className="col-span-2 text-on-surface-variant">{timeEfficiency}</span>
           </div>
         </div>
 

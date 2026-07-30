@@ -60,8 +60,10 @@ const populateTaskCommentsAndAttachments = async (tasksOrTask) => {
 const updateProjectProgress = async (projectId) => {
     try {
         const tasks = await Task.find({ projectId });
-        const progress = tasks.length > 0
-            ? Math.round(tasks.reduce((sum, t) => sum + (t.progress || 0), 0) / tasks.length)
+        const estimatedHours = tasks.reduce((sum, task) => sum + (Number(task.estimatedHours) || 0), 0);
+        const trackedHours = tasks.reduce((sum, task) => sum + (Number(task.workedHours) || 0), 0);
+        const progress = estimatedHours > 0
+            ? Math.min(100, Math.round((trackedHours / estimatedHours) * 100))
             : 0;
         await Project.findByIdAndUpdate(projectId, { progress });
     } catch (err) {
