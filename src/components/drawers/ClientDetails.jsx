@@ -15,6 +15,8 @@ const ClientDetails = ({ client, isOpen, onClose }) => {
 
   if (!client) return null;
 
+  const company = client.company || client.user?.company || client.industry || 'Not provided';
+  const location = client.location || client.user?.location || client.country || 'Not provided';
 
   const clientInvoices = invoices.filter(inv => {
     const cId = inv.client && typeof inv.client === 'object' ? inv.client._id : inv.client;
@@ -78,7 +80,7 @@ const ClientDetails = ({ client, isOpen, onClose }) => {
             <div>
               <h2 className="font-display-sm text-on-surface leading-tight mb-1">{client.name}</h2>
               <div className="flex items-center gap-2">
-                <span className="text-body-sm text-on-surface-variant font-medium">{client.company || 'Independent'}</span>
+                <span className="text-body-sm text-on-surface-variant font-medium">{company}</span>
                 <span className={`text-[9px] px-2 py-0.5 rounded-full tracking-wider font-bold ${client.status === 'Active' ? 'bg-primary/20 text-primary' : 'bg-surface-variant text-on-surface-variant'}`}>
                   {client.status}
                 </span>
@@ -123,15 +125,15 @@ const ClientDetails = ({ client, isOpen, onClose }) => {
                 <div className="flex gap-3 items-center">
                   <Building className="w-4 h-4 text-secondary opacity-70 shrink-0" />
                   <div className="min-w-0">
-                    <p className="text-[10px] text-on-surface-variant font-bold tracking-widest">Industry</p>
-                    <p className="font-body-sm text-on-surface truncate">{client.industry || '—'}</p>
+                    <p className="text-[10px] text-on-surface-variant font-bold tracking-widest">Company</p>
+                    <p className="font-body-sm text-on-surface truncate">{company}</p>
                   </div>
                 </div>
                 <div className="flex gap-3 items-center">
                   <MapPin className="w-4 h-4 text-tertiary opacity-70 shrink-0" />
                   <div className="min-w-0">
                     <p className="text-[10px] text-on-surface-variant font-bold tracking-widest">Location</p>
-                    <p className="font-body-sm text-on-surface truncate">{client.country || '—'}</p>
+                    <p className="font-body-sm text-on-surface truncate">{location}</p>
                   </div>
                 </div>
               </div>
