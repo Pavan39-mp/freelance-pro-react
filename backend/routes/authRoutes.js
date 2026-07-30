@@ -18,6 +18,6 @@ router.post('/logout', logoutUser);
 router.get('/me', protect, getUserProfile);
 router.put('/me', protect, updateUserProfile);
 router.post('/forgot-password', forgotPassword);
-router.post('/reset-password', resetPassword);
+router.put('/reset-password/:token', resetPassword);
 
 export default router;

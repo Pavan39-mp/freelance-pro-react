@@ -31,9 +31,9 @@ export const updateMe = async (updates) => {
 };
 
 export const forgotPassword = async (email) => {
-    return await api.post('/auth/forgot-password', { email });
+    return await api.post('/auth/forgot-password', { email: String(email || '').trim().toLowerCase() });
 };
 
-export const resetPassword = async (token, password) => {
-    return await api.post('/auth/reset-password', { token, password });
+export const resetPassword = async (token, password, confirmPassword) => {
+    return await api.put(`/auth/reset-password/${encodeURIComponent(token)}`, { password, confirmPassword });
 };

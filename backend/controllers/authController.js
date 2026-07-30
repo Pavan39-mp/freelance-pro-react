@@ -23,6 +23,14 @@ const isStrongPassword = (password) =>
     /\d/.test(password) &&
     /[^A-Za-z0-9]/.test(password);
 
+const isEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const escapeHtml = (value) => String(value || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+
 const publicUser = (user) => {
     const object = user.toObject ? user.toObject() : user;
     const safeUser = { ...object };
@@ -325,8 +333,8 @@ export const logoutUser = async (req, res) => {
 export const forgotPassword = async (req, res, next) => {
     try {
         const email = String(req.body.email || '').trim().toLowerCase();
-        if (!email) {
-            return res.status(400).json({ success: false, message: 'Email is required', data: null });
+        if (!isEmail(email)) {
+            return res.status(400).json({ success: false, message: 'Please enter a valid email address.', data: null });
         }
 
         const user = await User.findOne({ email }).select('+resetPasswordToken +resetPasswordExpires');
@@ -338,15 +346,23 @@ export const forgotPassword = async (req, res, next) => {
             user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);
             await user.save({ validateBeforeSave: false });
 
-            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-            const resetUrl = `${frontendUrl}/reset-password?token=${rawToken}`;
-            const emailResult = await sendEmail({
-                to: user.email,
-                subject: 'Reset your FreelancePro password',
-                html: `<p>You requested a password reset.</p><p><a href="${resetUrl}">Reset your password</a></p><p>This link expires in 15 minutes.</p>`
-            });
+            const configuredFrontendUrl = String(process.env.FRONTEND_URL || '').trim();
+            const frontendUrl = configuredFrontendUrl || (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5173');
+            const resetUrl = frontendUrl
+                ? `${frontendUrl.replace(/\/+$/, '')}/reset-password/${rawToken}`
+                : '';
+            const safeName = escapeHtml(user.fullName || 'there');
+            const emailResult = resetUrl
+                ? await sendEmail({
+                    to: user.email,
+                    subject: 'Reset your FreelancePro password',
+                    text: `Hello ${user.fullName || 'there'},\n\nUse this link to reset your FreelancePro password: ${resetUrl}\n\nThis link expires in 15 minutes. If you did not request this change, you can ignore this email.`,
+                    html: `<p>Hello ${safeName},</p><p>We received a request to reset your FreelancePro password.</p><p><a href="${resetUrl}">Reset your password</a></p><p>This link expires in 15 minutes.</p><p>If you did not request this change, you can ignore this email.</p>`
+                })
+                : { success: false, code: 'FRONTEND_URL_NOT_CONFIGURED' };
 
             if (!emailResult.success) {
+                console.error(`Password-reset email delivery failed: ${emailResult.code || 'UNKNOWN_ERROR'}`);
                 user.resetPasswordToken = undefined;
                 user.resetPasswordExpires = undefined;
                 await user.save({ validateBeforeSave: false });
@@ -369,11 +385,15 @@ export const forgotPassword = async (req, res, next) => {
 };
 
 // @desc    Reset Password
-// @route   POST /api/auth/reset-password
+// @route   PUT /api/auth/reset-password/:token
 // @access  Public
 export const resetPassword = async (req, res, next) => {
     try {
-        const { token, password } = req.body;
+        const { token } = req.params;
+        const { password, confirmPassword } = req.body;
+        if (password !== confirmPassword) {
+            return res.status(400).json({ success: false, message: 'Passwords do not match.', data: null });
+        }
         if (!token || !isStrongPassword(password)) {
             return res.status(400).json({
                 success: false,
@@ -388,7 +408,7 @@ export const resetPassword = async (req, res, next) => {
         }).select('+resetPasswordToken +resetPasswordExpires');
 
         if (!user) {
-            return res.status(400).json({ success: false, message: 'Password reset token is invalid or has expired.', data: null });
+            return res.status(400).json({ success: false, message: 'Password reset link is invalid or has expired.', data: null });
         }
 
         user.password = password;
