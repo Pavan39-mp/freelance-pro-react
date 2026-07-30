@@ -3,6 +3,7 @@ import Notification from '../models/Notification.js';
 import Activity from '../models/Activity.js';
 import User from '../models/User.js';
 import { sendEmail } from '../services/emailService.js';
+import { createGoogleMeetEvent } from '../services/googleCalendarService.js';
 
 const participantFilter = (user) => user.role === 'client'
     ? { $or: [{ clientUser: user._id }, { clientEmail: user.email }] }
@@ -60,26 +61,41 @@ export const scheduleMeeting = async (req, res, next) => {
             title,
             clientId,
             project,
-            provider,
             date,
             time,
             timeZone,
             agenda,
             notes,
             additionalParticipants,
-            duration,
-            meetingLink
+            duration
         } = req.body;
 
-        if (!title || !clientId || !project || !provider || !date || !time || !meetingLink) {
+        if (!title || !clientId || !project || !date || !time) {
             res.status(400);
             throw new Error('Please fill in all required fields');
         }
 
         const clientUser = await User.findOne({ _id: clientId, role: 'client' });
         if (!clientUser) return res.status(400).json({ success: false, message: 'Selected Client account could not be resolved.', data: null });
-        if (!isValidMeetingUrl(meetingLink)) return res.status(400).json({ success: false, message: 'Please provide a valid meeting URL.', data: null });
         const clientName = clientUser.fullName;
+        const participantEmails = [clientUser.email];
+        if (additionalParticipants) {
+            additionalParticipants.split(',').forEach(participant => {
+                const email = participant.trim();
+                if (email) participantEmails.push(email);
+            });
+        }
+        const provider = 'google-meet';
+        const providerLabel = 'Google Meet';
+        const { meetingLink } = await createGoogleMeetEvent({
+            title,
+            date,
+            time,
+            timeZone: timeZone || 'UTC',
+            duration: duration || 30,
+            attendees: participantEmails,
+            description: agenda || notes || `FreelancePro project meeting: ${project}`
+        });
 
         const meeting = await Meeting.create({
             title,
@@ -123,7 +139,7 @@ export const scheduleMeeting = async (req, res, next) => {
           </tr>
           <tr>
             <td style="padding: 8px 0; font-weight: bold; border-bottom: 1px solid #f3f4f6;">Provider:</td>
-            <td style="padding: 8px 0; border-bottom: 1px solid #f3f4f6;">${provider}</td>
+            <td style="padding: 8px 0; border-bottom: 1px solid #f3f4f6;">${providerLabel}</td>
           </tr>
           <tr>
             <td style="padding: 8px 0; font-weight: bold; border-bottom: 1px solid #f3f4f6;">Agenda:</td>
@@ -136,16 +152,8 @@ export const scheduleMeeting = async (req, res, next) => {
       </div>
     `;
 
-        const recipients = [clientUser.email];
-        if (additionalParticipants) {
-            additionalParticipants.split(',').forEach(p => {
-                const trimmed = p.trim();
-                if (trimmed) recipients.push(trimmed);
-            });
-        }
-
         await sendEmail({
-            to: recipients,
+            to: participantEmails,
             subject: `Invitation: ${title}`,
             html: emailHtml
         });
@@ -175,6 +183,7 @@ export const scheduleMeeting = async (req, res, next) => {
             data: await populateMeeting(Meeting.findById(meeting._id))
         });
     } catch (error) {
+        if (error.statusCode) res.status(error.statusCode);
         next(error);
     }
 };

@@ -25,8 +25,6 @@ const ScheduleMeetingForm = ({ onClose, isEmbedded = false, prefillClient = null
     time: '',
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     duration: '30',
-    provider: 'Google Meet',
-    meetingLink: '',
     additionalParticipants: '',
     agenda: '',
     notes: ''
@@ -98,15 +96,6 @@ const ScheduleMeetingForm = ({ onClose, isEmbedded = false, prefillClient = null
       document.querySelector('[name="duration"]')?.focus();
       return;
     }
-    try {
-      const meetingUrl = new URL(formData.meetingLink);
-      if (!['http:', 'https:'].includes(meetingUrl.protocol)) throw new Error();
-    } catch {
-      toast.error('A valid meeting link is required');
-      document.querySelector('[name="meetingLink"]')?.focus();
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
@@ -134,7 +123,7 @@ const ScheduleMeetingForm = ({ onClose, isEmbedded = false, prefillClient = null
     setFormData({
       title: '', clientId: '', client: '', clientEmail: '', project: '', date: '', time: '',
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, duration: '30',
-      provider: 'Google Meet', meetingLink: '', additionalParticipants: '', agenda: '', notes: ''
+      additionalParticipants: '', agenda: '', notes: ''
     });
   };
 
@@ -238,25 +227,6 @@ const ScheduleMeetingForm = ({ onClose, isEmbedded = false, prefillClient = null
               step="15"
               value={formData.duration}
               onChange={handleChange}
-              required
-            />
-
-            <Input
-              type="select"
-              label="Meeting Provider"
-              name="provider"
-              value={formData.provider}
-              onChange={handleChange}
-              options={["Google Meet", "Zoom"]}
-            />
-
-            <Input
-              type="url"
-              label="Meeting Link"
-              name="meetingLink"
-              value={formData.meetingLink}
-              onChange={handleChange}
-              placeholder="https://meet.google.com/..."
               required
             />
 

@@ -16,7 +16,13 @@
   .progress-range::-webkit-slider-runnable-track {
     height: 0.375rem;
     border-radius: 9999px;
-    background: var(--color-surface-container-highest);
+    background: linear-gradient(
+      to right,
+      var(--color-primary) 0%,
+      var(--color-primary) var(--progress, 0%),
+      var(--color-surface-container-highest) var(--progress, 0%),
+      var(--color-surface-container-highest) 100%
+    );
     border: 1px solid var(--color-outline-variant);
   }
 
@@ -35,6 +41,12 @@
     border-radius: 9999px;
     background: var(--color-surface-container-highest);
     border: 1px solid var(--color-outline-variant);
+  }
+
+  .progress-range::-moz-range-progress {
+    height: 0.375rem;
+    border-radius: 9999px;
+    background: var(--color-primary);
   }
 
   .progress-range::-moz-range-thumb {

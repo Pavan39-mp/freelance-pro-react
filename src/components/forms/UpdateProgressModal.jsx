@@ -88,6 +88,7 @@ const UpdateProgressModal = ({ task, onClose }) => {
               min="0"
               max="100"
               value={progress}
+              style={{ '--progress': `${progress}%` }}
               onChange={e => setProgress(e.target.value)}
               className="progress-range cursor-pointer py-0 px-0 border-none"
             />

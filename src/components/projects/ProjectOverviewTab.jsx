@@ -267,6 +267,7 @@ const ProjectOverviewTab = ({ project }) => {
                             min="0"
                             max="100"
                             value={progress}
+                            style={{ '--progress': `${progress}%` }}
                             disabled
                             readOnly
                             className="progress-range flex-1 cursor-pointer disabled:cursor-not-allowed"

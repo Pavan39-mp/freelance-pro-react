@@ -56,7 +56,7 @@ const ClientMeetings = () => {
                     <div className="flex flex-col gap-2 text-body-sm text-on-surface-variant sm:flex-row sm:flex-wrap sm:gap-4">
                       <span className="flex items-center gap-2"><Calendar className="h-4 w-4" />{new Date(`${meeting.date}T${meeting.time}`).toLocaleDateString()}</span>
                       <span className="flex items-center gap-2"><Clock className="h-4 w-4" />{meeting.time} · {meeting.duration || 30} minutes</span>
-                      <span>{meeting.provider}</span>
+                      <span>{meeting.provider === 'google-meet' ? 'Google Meet' : meeting.provider}</span>
                     </div>
                     {(meeting.agenda || meeting.notes) && <p className="whitespace-pre-wrap break-words text-body-sm text-on-surface">{meeting.agenda || meeting.notes}</p>}
                   </div>

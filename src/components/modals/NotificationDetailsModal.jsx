@@ -240,7 +240,7 @@ const NotificationDetailsModal = ({ notification, isOpen, onClose, variant = 'mo
           {meetingId && (
             <div className="rounded-2xl border border-outline-variant/10 bg-surface-container-low p-5">
               <h4 className="mb-3 flex items-center gap-2 text-body-sm font-bold text-on-surface"><Video className="h-4 w-4 text-primary" />{meeting.title}</h4>
-              <p className="text-body-sm text-on-surface-variant">{meeting.date} at {meeting.time} · {meeting.duration || 30} minutes · {meeting.provider}</p>
+              <p className="text-body-sm text-on-surface-variant">{meeting.date} at {meeting.time} · {meeting.duration || 30} minutes · {meeting.provider === 'google-meet' ? 'Google Meet' : meeting.provider}</p>
               {meeting.agenda && <p className="mt-3 whitespace-pre-wrap break-words text-body-sm text-on-surface">{meeting.agenda}</p>}
             </div>
           )}

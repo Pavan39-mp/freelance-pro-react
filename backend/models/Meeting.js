@@ -8,7 +8,7 @@ const MeetingSchema = new mongoose.Schema({
     clientName: { type: String, default: '' },
     clientEmail: { type: String, required: true },
     project: { type: String, required: true }, // Project Title
-    provider: { type: String, enum: ['Google Meet', 'Zoom'], required: true },
+    provider: { type: String, enum: ['google-meet', 'Google Meet', 'Zoom'], default: 'google-meet', required: true },
     joinUrl: { type: String, default: '' },
     date: { type: String, required: true },
     time: { type: String, required: true },

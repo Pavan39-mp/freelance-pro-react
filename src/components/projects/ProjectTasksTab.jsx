@@ -190,6 +190,7 @@ const ProjectTasksTab = ({ project }) => {
                                         min="0"
                                         max="100"
                                         value={task.progress || 0}
+                                        style={{ '--progress': `${task.progress || 0}%` }}
                                         disabled={user?.role === 'client'}
                                         onChange={(e) => handleQuickProgressChange(task.id || task._id, e.target.value)}
                                         className="progress-range w-full cursor-pointer disabled:cursor-not-allowed"

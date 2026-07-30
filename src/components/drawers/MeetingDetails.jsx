@@ -112,7 +112,7 @@ const MeetingDetails = ({ meeting, isOpen, onClose }) => {
               <Users className="w-4 h-4 text-tertiary opacity-70 shrink-0" />
               <div className="min-w-0">
                 <p className="text-[10px] text-on-surface-variant font-bold tracking-widest">Provider</p>
-                <p className="font-body-sm text-on-surface">{meeting.provider || 'Google Meet'}</p>
+                <p className="font-body-sm text-on-surface">{meeting.provider === 'google-meet' ? 'Google Meet' : (meeting.provider || 'Google Meet')}</p>
               </div>
             </div>
             {meeting.project && (
