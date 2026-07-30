@@ -191,7 +191,7 @@ const ProjectTasksTab = ({ project }) => {
                                         value={task.progress || 0}
                                         disabled={user?.role === 'client'}
                                         onChange={(e) => handleQuickProgressChange(task.id || task._id, e.target.value)}
-                                        className="w-full accent-primary h-1.5 bg-surface-container-highest rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed"
+                                        className="progress-range w-full cursor-pointer disabled:cursor-not-allowed"
                                     />
                                 </div>
                                 {task.estimatedHours > 0 && (

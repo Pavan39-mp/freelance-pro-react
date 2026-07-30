@@ -223,6 +223,16 @@ export const addTask = async (req, res, next) => {
             throw new Error('Project not found or access denied');
         }
 
+        const projectDueDate = String(existingProject.dueDate || '').split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
+        if (/^\d{4}-\d{2}-\d{2}$/.test(projectDueDate) && today > projectDueDate) {
+            return res.status(400).json({
+                success: false,
+                message: 'This project deadline has passed. New tasks cannot be created.',
+                data: null
+            });
+        }
+
         const task = await Task.create({
             title,
             projectId,

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTasks } from '../context/TaskContext';
+import { useProjects } from '../context/ProjectContext';
 import { CheckCircle2, Clock, Circle, AlertCircle, Calendar, Plus, Trash2, AlertTriangle, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import AddTaskForm from '../components/forms/AddTaskForm';
 import Card from '../components/ui/Card';
@@ -9,13 +10,21 @@ import TaskDetailsDrawer from '../components/ui/TaskDetailsDrawer';
 const Tasks = () => {
   const location = useLocation();
   const [showAddForm, setShowAddForm] = useState(false);
+  const { projects = [] } = useProjects();
+  const safeProjects = Array.isArray(projects) ? projects : [];
+  const today = new Date().toISOString().split('T')[0];
+  const hasOpenProject = safeProjects.some(project => {
+    const dueDate = String(project.dueDate || project.deadline || '').split('T')[0];
+    return !/^\d{4}-\d{2}-\d{2}$/.test(dueDate) || today <= dueDate;
+  });
+  const taskCreationBlocked = safeProjects.length > 0 && !hasOpenProject;
 
   useEffect(() => {
-    if (location.state?.openAddForm) {
+    if (location.state?.openAddForm && !taskCreationBlocked) {
       setShowAddForm(true);
       window.history.replaceState({}, document.title);
     }
-  }, [location.state]);
+  }, [location.state, taskCreationBlocked]);
 
   const {
     tasks,
@@ -157,13 +166,17 @@ const Tasks = () => {
           <h2 className="font-display-lg text-display-lg text-on-surface mb-2">Tasks</h2>
           <p className="text-on-surface-variant font-body-lg">Manage tasks, update progress, and collaborate.</p>
         </div>
-        <button
-          onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-xl font-label-caps text-label-caps font-bold active:scale-95 duration-200"
-        >
-          <Plus className="w-[1.125rem] h-[1.125rem]" />
-          Add Task
-        </button>
+        <div className="flex flex-col items-start md:items-end gap-1">
+          <button
+            onClick={() => setShowAddForm(true)}
+            disabled={taskCreationBlocked}
+            className="flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-xl font-label-caps text-label-caps font-bold active:scale-95 duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Plus className="w-[1.125rem] h-[1.125rem]" />
+            Add Task
+          </button>
+          {taskCreationBlocked && <p className="text-[10px] text-error">This project deadline has passed. New tasks cannot be created.</p>}
+        </div>
       </div>
 
       {/* Query Filter Toolbar */}

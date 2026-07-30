@@ -11,3 +11,9 @@ export const getMessages = async (conversationId) =>
 
 export const sendMessage = async (conversationId, text) =>
     api.post(`/messages/conversations/${conversationId}`, { text });
+
+export const getProjectRequestMessages = async (projectRequestId) =>
+    api.get(`/messages/project-requests/${projectRequestId}`);
+
+export const sendProjectRequestMessage = async (projectRequestId, text) =>
+    api.post(`/messages/project-requests/${projectRequestId}`, { text });

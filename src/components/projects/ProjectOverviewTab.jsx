@@ -290,7 +290,7 @@ const ProjectOverviewTab = ({ project }) => {
                                     saveField('progress', progress);
                                 }
                             }}
-                            className="flex-1 accent-primary h-2 bg-surface-container-highest rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed"
+                            className="progress-range flex-1 cursor-pointer disabled:cursor-not-allowed"
                         />
                         <input
                             type="number"

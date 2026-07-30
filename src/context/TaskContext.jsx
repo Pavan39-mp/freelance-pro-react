@@ -108,6 +108,7 @@ export const TaskProvider = ({ children }) => {
       return mapped;
     } catch (err) {
       console.error('Error adding task:', err.message);
+      throw err;
     }
   };
 

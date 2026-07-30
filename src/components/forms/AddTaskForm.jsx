@@ -22,6 +22,14 @@ const AddTaskForm = ({ onClose }) => {
     deadline: '',
     description: ''
   });
+  const safeProjects = Array.isArray(projects) ? projects : [];
+  const safeClients = Array.isArray(clients) ? clients : [];
+  const selectedProject = safeProjects.find(projectItem =>
+    String(projectItem._id || projectItem.id) === String(formData.project)
+  );
+  const projectDueDate = String(selectedProject?.dueDate || selectedProject?.deadline || '').split('T')[0];
+  const today = new Date().toISOString().split('T')[0];
+  const isProjectOverdue = projectDueDate && today > projectDueDate;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -34,7 +42,7 @@ const AddTaskForm = ({ onClose }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.title) {
       toast.error('Task Name is required');
@@ -49,31 +57,30 @@ const AddTaskForm = ({ onClose }) => {
       return;
     }
 
-    const selectedProject = projects.find(
-      (p) => p._id === formData.project
-    );
-
     if (!selectedProject) {
       toast.error("Selected project not found");
       return;
     }
-
-    console.log("Selected Project:", selectedProject);
+    if (isProjectOverdue) {
+      toast.error('This project deadline has passed. New tasks cannot be created.');
+      return;
+    }
 
     const taskToAdd = {
       ...formData,
       projectId: formData.project,
     };
 
-    console.log("Task being added:", taskToAdd);
-
-    addTask(taskToAdd);
-
-    toast.success("Task added successfully");
-    onClose();
+    try {
+      await addTask(taskToAdd);
+      toast.success('Task added successfully');
+      onClose();
+    } catch (error) {
+      toast.error(error.message || 'Failed to create task');
+    }
   };
 
-  const availableProjects = projects.filter(p => {
+  const availableProjects = safeProjects.filter(p => {
     // Safely extract client or platformClient ID and convert to string for reliable comparison
     const rawClient = p.client || p.platformClient || null;
     let pClientId = null;
@@ -119,7 +126,7 @@ const AddTaskForm = ({ onClose }) => {
                 onChange={handleChange}
                 required
                 placeholder="Select a client..."
-                options={clients.map(c => ({ value: c._id, label: c.fullName || c.name }))}
+                options={safeClients.map(c => ({ value: c._id, label: c.fullName || c.name }))}
               />
 
               <div className="space-y-1">
@@ -136,6 +143,9 @@ const AddTaskForm = ({ onClose }) => {
                 />
                 {formData.client && availableProjects.length === 0 && (
                   <p className="text-[10px] text-error ml-1 mt-1">This client has no projects.</p>
+                )}
+                {isProjectOverdue && (
+                  <p className="text-[10px] text-error ml-1 mt-1">This project deadline has passed. New tasks cannot be created.</p>
                 )}
               </div>
 
@@ -198,7 +208,7 @@ const AddTaskForm = ({ onClose }) => {
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" form="add-task-form">
+          <Button type="submit" form="add-task-form" disabled={isProjectOverdue === true}>
             Save Task
           </Button>
         </div>

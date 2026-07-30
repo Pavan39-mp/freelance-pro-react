@@ -4,9 +4,10 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { useProjects } from '../../context/ProjectContext';
 import { useUser } from '../../context/UserContext';
-import { Clock, CheckCircle, XCircle, Slash, Calendar, IndianRupee, ClipboardList } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, Slash, Calendar, IndianRupee, ClipboardList, MessageSquare } from 'lucide-react';
 import toast from 'react-hot-toast';
 import TextPreview from '../../components/ui/TextPreview';
+import ProjectRequestChat from '../../components/projects/ProjectRequestChat';
 
 const ProjectRequests = () => {
     const { user } = useUser();
@@ -14,6 +15,7 @@ const ProjectRequests = () => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [expandedRequestId, setExpandedRequestId] = useState(null);
+    const [activeChatRequestId, setActiveChatRequestId] = useState(null);
 
     const fetchRequests = async () => {
         try {
@@ -148,14 +150,22 @@ const ProjectRequests = () => {
                                 {req.status === 'pending' && (
                                     <div className="flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
                                         {user?.role === 'client' ? (
-                                            <Button
-                                                variant="outlined"
-                                                onClick={() => handleStatusUpdate(req._id, 'cancelled')}
-                                            >
-                                                Cancel Request
-                                            </Button>
+                                            <>
+                                                <Button variant="outlined" onClick={() => setActiveChatRequestId(activeChatRequestId === req._id ? null : req._id)}>
+                                                    <MessageSquare className="w-4 h-4" /> Message Freelancer
+                                                </Button>
+                                                <Button
+                                                    variant="outlined"
+                                                    onClick={() => handleStatusUpdate(req._id, 'cancelled')}
+                                                >
+                                                    Cancel Request
+                                                </Button>
+                                            </>
                                         ) : (
                                             <>
+                                                <Button variant="outlined" onClick={() => setActiveChatRequestId(activeChatRequestId === req._id ? null : req._id)}>
+                                                    <MessageSquare className="w-4 h-4" /> Message Client
+                                                </Button>
                                                 <Button
                                                     variant="outlined"
                                                     onClick={() => handleStatusUpdate(req._id, 'rejected')}
@@ -173,6 +183,9 @@ const ProjectRequests = () => {
                                     </div>
                                 )}
                             </div>
+                            {req.status === 'pending' && activeChatRequestId === req._id && (
+                                <ProjectRequestChat projectRequestId={req._id} currentUser={user} />
+                            )}
                         </Card>
                     ))}
                 </div>

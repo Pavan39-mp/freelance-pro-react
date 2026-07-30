@@ -89,7 +89,7 @@ const UpdateProgressModal = ({ task, onClose }) => {
               max="100"
               value={progress}
               onChange={e => setProgress(e.target.value)}
-              className="h-2 bg-surface-variant rounded-lg appearance-none cursor-pointer accent-primary py-0 px-0 border-none"
+              className="progress-range cursor-pointer py-0 px-0 border-none"
             />
             <div className="flex justify-between text-[10px] text-on-surface-variant font-bold">
               <span>0% (To Do)</span>
