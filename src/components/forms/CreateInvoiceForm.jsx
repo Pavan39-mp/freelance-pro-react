@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useUser } from '../../context/UserContext';
 import { useInvoices } from '../../context/InvoiceContext';
-import { useClients } from '../../context/ClientContext';
 import { useProjects } from '../../context/ProjectContext';
 import { X, Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -13,11 +12,7 @@ import { formatCurrency } from '../../services/api';
 const CreateInvoiceForm = ({ onClose, isEmbedded = false, prefillProject = null, onCreated = null }) => {
   const { user } = useUser();
   const { addInvoice } = useInvoices();
-  const { clients } = useClients();
   const { projects } = useProjects();
-  const selectedProject = projects.find(project => (project._id || project.id) === formData.project);
-  const assignedFreelancer = selectedProject?.createdBy;
-  const freelancerName = assignedFreelancer?.fullName || assignedFreelancer?.name || 'Assigned from project';
 
   const [formData, setFormData] = useState({
     project: prefillProject || '',
@@ -28,6 +23,14 @@ const CreateInvoiceForm = ({ onClose, isEmbedded = false, prefillProject = null,
     discount: 0,
     notes: ''
   });
+
+  const safeProjects = Array.isArray(projects) ? projects : [];
+  const selectedProjectId = formData.project || '';
+  const selectedProject = selectedProjectId
+    ? safeProjects.find(projectItem => String(projectItem._id || projectItem.id) === String(selectedProjectId))
+    : null;
+  const assignedFreelancer = selectedProject?.createdBy;
+  const freelancerName = assignedFreelancer?.fullName || assignedFreelancer?.name || 'Assigned from project';
 
   const handleItemChange = (index, field, value) => {
     const newItems = [...formData.items];
@@ -119,7 +122,7 @@ const CreateInvoiceForm = ({ onClose, isEmbedded = false, prefillProject = null,
               placeholder="Select Project"
               disabled={!!prefillProject}
               required
-              options={projects.filter(p => user?.role === 'client' || (!formData.client || p.client === formData.client)).map(p => ({ label: p.title || p.name, value: p._id || p.id }))}
+              options={safeProjects.filter(p => user?.role === 'client' || (!formData.client || p.client === formData.client)).map(p => ({ label: p.title || p.name, value: p._id || p.id }))}
             />
 
             <Input

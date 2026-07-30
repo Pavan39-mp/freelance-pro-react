@@ -43,6 +43,9 @@ const InvoiceFormModal = ({ invoice, onSave, onClose, clientManaged = false }) =
     const [form, setForm] = useState(defaultForm());
     const [saving, setSaving] = useState(false);
     const [totals, setTotals] = useState({ subtotal: 0, taxAmount: 0, total: 0 });
+    const safeClients = Array.isArray(clients) ? clients : [];
+    const safeProjects = Array.isArray(projects) ? projects : [];
+    const safeTasks = Array.isArray(tasks) ? tasks : [];
 
     // Populate form when editing
     useEffect(() => {
@@ -82,7 +85,7 @@ const InvoiceFormModal = ({ invoice, onSave, onClose, clientManaged = false }) =
 
     // Populate item from a selected task
     const fillFromTask = (idx, taskId) => {
-        const task = tasks.find(t => (t._id || t.id) === taskId);
+        const task = safeTasks.find(taskItem => String(taskItem._id || taskItem.id) === String(taskId));
         if (!task) { updateItem(idx, 'taskId', taskId); return; }
         setForm(prev => {
             const items = [...prev.items];
@@ -100,14 +103,14 @@ const InvoiceFormModal = ({ invoice, onSave, onClose, clientManaged = false }) =
     };
 
     const filteredProjects = clientManaged
-        ? projects
+        ? safeProjects
         : form.clientId
-        ? projects.filter(p => (p.client?._id || p.client?.id || p.clientId || p.client) === form.clientId)
-        : projects;
+        ? safeProjects.filter(p => String(p.client?._id || p.client?.id || p.clientId || p.client) === String(form.clientId))
+        : safeProjects;
 
     const filteredTasks = form.projectId
-        ? tasks.filter(t => (t.projectId?._id || t.projectId) === form.projectId)
-        : tasks;
+        ? safeTasks.filter(t => String(t.projectId?._id || t.projectId) === String(form.projectId))
+        : safeTasks;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -161,7 +164,7 @@ const InvoiceFormModal = ({ invoice, onSave, onClose, clientManaged = false }) =
                                 <div className="relative">
                                     <select value={form.clientId} onChange={e => { setField('clientId', e.target.value); setField('projectId', ''); }} className={inputCls + ' pr-8 appearance-none cursor-pointer'} required>
                                         <option value="">— Select Client —</option>
-                                        {clients.map(c => <option key={c._id} value={c._id}>{c.fullName}</option>)}
+                                        {safeClients.map(c => <option key={c._id} value={c._id}>{c.fullName}</option>)}
                                     </select>
                                     <ChevronDown className="w-4 h-4 absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" />
                                 </div>

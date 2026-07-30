@@ -28,6 +28,34 @@ const STATUS_STYLES = {
     Cancelled: 'bg-surface-variant text-on-surface-variant opacity-60'
 };
 
+class InvoiceFormErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError() {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error, errorInfo) {
+        console.error('Invoice form failed to render:', error, errorInfo);
+    }
+
+    render() {
+        if (!this.state.hasError) return this.props.children;
+        return (
+            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-background/70 backdrop-blur-sm">
+                <div className="w-full max-w-md rounded-2xl border border-outline-variant/20 bg-surface-container p-6 shadow-2xl">
+                    <h2 className="font-headline-sm text-on-surface">Unable to open invoice form</h2>
+                    <p className="mt-2 text-body-sm text-on-surface-variant">The form encountered an unexpected error. Close it and try again.</p>
+                    <button type="button" onClick={this.props.onClose} className="mt-5 px-5 py-2 bg-primary text-on-primary rounded-xl font-bold text-body-sm">Close</button>
+                </div>
+            </div>
+        );
+    }
+}
+
 const Invoices = () => {
     const { invoices, revenueSummary, addInvoice, updateInvoice, deleteInvoice, duplicateInvoice, changeStatus } = useInvoices();
     const { user } = useUser();
@@ -431,19 +459,23 @@ const Invoices = () => {
             )}
 
             {/* Form Modal */}
-            {showForm && (editingInvoice ? (
-                <InvoiceFormModal
-                    invoice={editingInvoice}
-                    clientManaged
-                    onSave={handleSave}
-                    onClose={() => { setShowForm(false); setEditingInvoice(null); }}
-                />
-            ) : (
-                <CreateInvoiceForm
-                    onClose={() => setShowForm(false)}
-                    onCreated={() => setShowForm(false)}
-                />
-            ))}
+            {showForm && (
+                <InvoiceFormErrorBoundary onClose={() => { setShowForm(false); setEditingInvoice(null); }}>
+                    {editingInvoice ? (
+                        <InvoiceFormModal
+                            invoice={editingInvoice}
+                            clientManaged
+                            onSave={handleSave}
+                            onClose={() => { setShowForm(false); setEditingInvoice(null); }}
+                        />
+                    ) : (
+                        <CreateInvoiceForm
+                            onClose={() => setShowForm(false)}
+                            onCreated={() => setShowForm(false)}
+                        />
+                    )}
+                </InvoiceFormErrorBoundary>
+            )}
 
             {/* Payment Modal */}
             {paymentInvoice && (
