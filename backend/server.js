@@ -27,6 +27,7 @@ import invoiceRoutes from './routes/invoiceRoutes.js';
 import timerRoutes from './routes/timerRoutes.js';
 import freelancerRoutes from './routes/freelancerRoutes.js';
 import projectRequestRoutes from './routes/projectRequestRoutes.js';
+import projectProposalRoutes from './routes/projectProposalRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -123,6 +124,7 @@ app.use('/api/invoices', invoiceRoutes);
 app.use('/api/timer', timerRoutes);
 app.use('/api/freelancers', freelancerRoutes);
 app.use('/api/project-requests', projectRequestRoutes);
+app.use('/api/project-proposals', projectProposalRoutes);
 app.use('/api/messages', messageRoutes);
 
 // Health Check Route
