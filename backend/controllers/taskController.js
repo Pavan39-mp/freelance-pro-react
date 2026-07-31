@@ -218,11 +218,22 @@ export const addTask = async (req, res, next) => {
             throw new Error('Please fill in all required fields');
         }
 
-        // Verify project belongs to current user
-        const existingProject = await Project.findOne({ _id: projectId, createdBy: req.user._id });
+        const existingProject = await Project.findById(projectId);
         if (!existingProject) {
-            res.status(403);
-            throw new Error('Project not found or access denied');
+            return res.status(404).json({
+                success: false,
+                message: 'Project not found',
+                data: null
+            });
+        }
+
+        // Keep the existing ownership restriction after loading the project.
+        if (String(existingProject.createdBy) !== String(req.user._id)) {
+            return res.status(403).json({
+                success: false,
+                message: 'Project not found or access denied',
+                data: null
+            });
         }
 
         const today = new Date();
@@ -231,7 +242,16 @@ export const addTask = async (req, res, next) => {
         today.setHours(0, 0, 0, 0);
         projectDeadline.setHours(0, 0, 0, 0);
 
-        if (!Number.isNaN(projectDeadline.getTime()) && today > projectDeadline) {
+        // A configured but malformed deadline must not make validation fail open.
+        if (existingProject.dueDate && Number.isNaN(projectDeadline.getTime())) {
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot create task. Project deadline is invalid.',
+                data: null
+            });
+        }
+
+        if (existingProject.dueDate && today > projectDeadline) {
             return res.status(400).json({
                 success: false,
                 message: 'Cannot create task. Project deadline has passed.',
