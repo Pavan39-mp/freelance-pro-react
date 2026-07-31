@@ -232,7 +232,18 @@ export const updateUserProfile = async (req, res, next) => {
             user.bio = req.body.bio !== undefined ? req.body.bio : user.bio;
 
             if (req.user.role === 'freelancer') {
-                user.skills = req.body.skills !== undefined ? req.body.skills : user.skills;
+                if (req.body.skills !== undefined) {
+                    const normalizedSkills = [...new Set(
+                        String(req.body.skills)
+                            .split(',')
+                            .map(skill => skill.trim())
+                            .filter(Boolean)
+                    )];
+                    if (normalizedSkills.length === 0) {
+                        return res.status(400).json({ success: false, message: 'At least one skill is required.', data: null });
+                    }
+                    user.skills = normalizedSkills.join(', ');
+                }
                 user.isPublicProfile = req.body.isPublicProfile !== undefined ? req.body.isPublicProfile : user.isPublicProfile;
                 user.services = req.body.services !== undefined ? req.body.services : user.services;
                 user.portfolio = req.body.portfolio !== undefined ? req.body.portfolio : user.portfolio;

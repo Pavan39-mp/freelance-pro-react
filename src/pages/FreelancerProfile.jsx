@@ -235,7 +235,12 @@ const FreelancerProfile = () => {
                                             <span className="text-body-sm text-on-surface-variant">{new Date(project.completionDate).toLocaleDateString()}</span>
                                         </div>
                                         <p className="mt-1 text-body-sm text-on-surface-variant">{project.category}</p>
+                                        {project.description && <p className="mt-3 text-body-sm text-on-surface-variant whitespace-pre-wrap">{project.description}</p>}
                                         {project.skills?.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{project.skills.map(skill => <span key={skill} className="rounded-lg bg-surface-variant/50 px-2.5 py-1 text-label-sm text-on-surface">{skill}</span>)}</div>}
+                                        <div className="mt-3 flex flex-wrap gap-4 text-body-sm text-on-surface">
+                                            <span>Budget: ₹{Number(project.budget || 0).toLocaleString('en-IN')}</span>
+                                            {project.clientRating && <span className="flex items-center gap-1 text-primary"><Star className="h-4 w-4 fill-current" />{Number(project.clientRating).toFixed(1)}</span>}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -253,8 +258,15 @@ const FreelancerProfile = () => {
                             <div className="space-y-4">
                                 {profile.reviews.map(review => (
                                     <div key={review._id} className="rounded-xl border border-outline-variant/20 bg-surface-container-low/50 p-4">
-                                        <div className="flex items-center gap-2 text-primary"><Star className="h-4 w-4 fill-current" /><span className="font-bold">{Number(review.rating || 0).toFixed(1)}</span></div>
-                                        {review.reviewText && <p className="mt-2 text-body-md text-on-surface-variant whitespace-pre-wrap">{review.reviewText}</p>}
+                                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                            <div>
+                                                <p className="font-title-md font-bold text-on-surface">{review.clientName || 'Verified Client'}</p>
+                                                <div className="mt-1 flex text-primary">{[1, 2, 3, 4, 5].map(value => <Star key={value} className={`h-4 w-4 ${value <= Math.round(review.rating || 0) ? 'fill-current' : ''}`} />)}</div>
+                                            </div>
+                                            <span className="text-body-sm text-on-surface-variant">{new Date(review.createdAt).toLocaleDateString()}</span>
+                                        </div>
+                                        {review.reviewMessage && <p className="mt-3 text-body-md text-on-surface-variant whitespace-pre-wrap">“{review.reviewMessage}”</p>}
+                                        <p className="mt-3 text-body-sm text-on-surface"><span className="text-on-surface-variant">Project:</span> {review.projectName || 'Completed Project'}</p>
                                     </div>
                                 ))}
                             </div>
@@ -274,7 +286,7 @@ const FreelancerProfile = () => {
                             </div>
                             <span className="font-title-md font-bold text-on-surface">{Number(profile.averageRating || 0).toFixed(1)}</span>
                         </div>
-                        <p className="mt-3 text-body-sm text-on-surface-variant">Based on {profile.totalReviews || 0} reviews</p>
+                        <p className="mt-3 text-body-sm text-on-surface-variant">Based on {profile.totalReviews || 0} client reviews from completed projects</p>
                         <div className="mt-4 grid grid-cols-2 gap-3 border-t border-outline-variant/10 pt-4 text-center">
                             <div><p className="font-title-md font-bold text-on-surface">{profile.totalCompletedProjects || 0}</p><p className="text-label-sm text-on-surface-variant">Completed projects</p></div>
                             <div><p className="font-title-md font-bold text-on-surface">{profile.totalReviews || 0}</p><p className="text-label-sm text-on-surface-variant">Total reviews</p></div>

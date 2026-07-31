@@ -154,3 +154,84 @@ export const getFreelancerProfile = async (req, res, next) => {
         next(error);
     }
 };
+
+// @desc    Get public reviews for a freelancer
+// @route   GET /api/freelancers/:id/reviews
+// @access  Private
+export const getFreelancerReviews = async (req, res, next) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ success: false, message: 'Invalid freelancer ID', data: null });
+        }
+        const freelancer = await User.findOne({ _id: req.params.id, role: 'freelancer', isPublicProfile: true }).select('_id');
+        if (!freelancer) {
+            return res.status(404).json({ success: false, message: 'Public freelancer profile not found', data: null });
+        }
+        const reviews = await FreelancerReview.find({ freelancer: freelancer._id })
+            .select('client project rating reviewText createdAt')
+            .populate('client', 'fullName')
+            .populate('project', 'name')
+            .sort({ createdAt: -1 });
+        const averageRating = reviews.length > 0
+            ? Number((reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviews.length).toFixed(1))
+            : 0;
+
+        return res.json({
+            success: true,
+            message: 'Freelancer reviews retrieved successfully',
+            data: {
+                averageRating,
+                totalReviews: reviews.length,
+                reviews: reviews.map(review => ({
+                    _id: review._id,
+                    clientName: review.client?.fullName || 'Verified Client',
+                    rating: review.rating,
+                    reviewMessage: review.reviewText,
+                    projectName: review.project?.name || 'Completed Project',
+                    createdAt: review.createdAt
+                }))
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Get completed work for a public freelancer
+// @route   GET /api/freelancers/:id/completed-projects
+// @access  Private
+export const getFreelancerCompletedProjects = async (req, res, next) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ success: false, message: 'Invalid freelancer ID', data: null });
+        }
+        const freelancer = await User.findOne({ _id: req.params.id, role: 'freelancer', isPublicProfile: true }).select('_id');
+        if (!freelancer) {
+            return res.status(404).json({ success: false, message: 'Public freelancer profile not found', data: null });
+        }
+        const projects = await Project.find({ createdBy: freelancer._id, status: 'Completed' })
+            .select('name description budget updatedAt projectRequest')
+            .populate('projectRequest', 'category skills')
+            .sort({ updatedAt: -1 });
+        const reviews = await FreelancerReview.find({ project: { $in: projects.map(project => project._id) }, freelancer: freelancer._id })
+            .select('project rating');
+        const ratingByProject = new Map(reviews.map(review => [String(review.project), review.rating]));
+
+        return res.json({
+            success: true,
+            message: 'Completed projects retrieved successfully',
+            data: projects.map(project => ({
+                _id: project._id,
+                title: project.name,
+                category: project.projectRequest?.category || 'Project',
+                description: project.description,
+                skills: project.projectRequest?.skills || [],
+                completionDate: project.updatedAt,
+                budget: project.budget,
+                clientRating: ratingByProject.get(String(project._id)) || null
+            }))
+        });
+    } catch (error) {
+        next(error);
+    }
+};

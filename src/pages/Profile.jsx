@@ -3,6 +3,7 @@ import { useUser } from '../context/UserContext';
 import { Camera, MapPin, Mail, Phone, Briefcase, Code } from 'lucide-react';
 import Card from '../components/ui/Card';
 import AutoResizeTextarea from '../components/ui/AutoResizeTextarea';
+import toast from 'react-hot-toast';
 
 const Profile = () => {
   const { user, updateUser } = useUser();
@@ -20,13 +21,27 @@ const Profile = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    updateUser({
+    const normalizedSkills = [...new Set(
+      String(formData.skills || '').split(',').map(skill => skill.trim()).filter(Boolean)
+    )];
+    if (normalizedSkills.length === 0) {
+      toast.error('Skills & Expertise is required.');
+      return;
+    }
+    const result = await updateUser({
       ...formData,
+      skills: normalizedSkills.join(', '),
       avatar: user.avatar
     });
-    setIsEditing(false);
+    if (result.success) {
+      setFormData(current => ({ ...current, skills: normalizedSkills.join(', ') }));
+      setIsEditing(false);
+      toast.success('Profile updated successfully.');
+    } else {
+      toast.error(result.message || 'Failed to update profile.');
+    }
   };
 
   const handleCancel = () => {
@@ -227,8 +242,8 @@ const Profile = () => {
                     <input name="title" value={formData.title} onChange={handleChange} className="w-full bg-surface-container-high/50 border border-outline-variant/30 rounded-xl py-3 px-4 text-on-surface font-body-md focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none" />
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <label className="font-label-caps text-label-caps text-on-surface-variant ml-1">Skills (comma separated)</label>
-                    <input name="skills" value={formData.skills} onChange={handleChange} className="w-full bg-surface-container-high/50 border border-outline-variant/30 rounded-xl py-3 px-4 text-on-surface font-body-md focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none" />
+                    <label className="font-label-caps text-label-caps text-on-surface-variant ml-1">Skills &amp; Expertise *</label>
+                    <input name="skills" value={formData.skills || ''} onChange={handleChange} required placeholder="React, Node.js, MongoDB, Express, Tailwind CSS" className="w-full bg-surface-container-high/50 border border-outline-variant/30 rounded-xl py-3 px-4 text-on-surface font-body-md focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none" />
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <label className="font-label-caps text-label-caps text-on-surface-variant ml-1">Bio/About</label>
