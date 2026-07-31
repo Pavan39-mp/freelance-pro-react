@@ -78,7 +78,6 @@ const AvailableProjects = () => {
                 <div className="flex flex-wrap items-center gap-5 border-t border-outline-variant/10 pt-4 text-body-sm text-on-surface-variant">
                   <span className="flex items-center gap-1 font-semibold text-on-surface"><IndianRupee className="h-4 w-4 text-primary" />{Number(project.budget?.min || 0).toLocaleString('en-IN')} – ₹{Number(project.budget?.max || 0).toLocaleString('en-IN')}</span>
                   <span className="flex items-center gap-2"><Calendar className="h-4 w-4" />{deadline.toLocaleDateString()} · {daysRemaining} days remaining</span>
-                  <Button type="button" className="ml-auto" onClick={() => setSelectedProject(project)}>Send Proposal</Button>
                 </div>
                 {proposal && (
                   <div className="rounded-xl bg-primary/10 p-4 text-body-sm">
@@ -86,6 +85,7 @@ const AvailableProjects = () => {
                     <div className="mt-2 flex flex-wrap gap-4 text-on-surface-variant"><span>Budget: ₹{Number(proposal.proposedBudget).toLocaleString('en-IN')}</span><span>Delivery: {proposal.deliveryDays} days</span></div>
                   </div>
                 )}
+                <Button type="button" onClick={() => setSelectedProject(project)}>Send Proposal</Button>
               </Card>
             );
           })}
