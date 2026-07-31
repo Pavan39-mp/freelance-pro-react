@@ -17,6 +17,9 @@ const getProjectRequestForParticipant = async (projectRequestId, userId) => {
     if (!isObjectId(projectRequestId)) return { status: 400, message: 'Invalid project request ID.' };
     const projectRequest = await ProjectRequest.findById(projectRequestId);
     if (!projectRequest) return { status: 404, message: 'Project request not found.' };
+    if (projectRequest.requestType === 'marketplace' || !projectRequest.freelancer) {
+        return { status: 403, message: 'Messaging is not available for marketplace requests.' };
+    }
     const isClient = projectRequest.client.equals(userId);
     const isFreelancer = projectRequest.freelancer.equals(userId);
     if (!isClient && !isFreelancer) return { status: 403, message: 'You cannot access this project request conversation.' };

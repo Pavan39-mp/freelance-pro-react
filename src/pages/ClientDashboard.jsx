@@ -2,7 +2,7 @@ import React from 'react';
 import { useUser } from '../context/UserContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { Users, FileText, Briefcase, Clock, ArrowRight, Activity, Search } from 'lucide-react';
+import { Users, FileText, Briefcase, Clock, ArrowRight, Activity, Search, PlusCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import UpcomingMeetingsWidget from '../components/dashboard/UpcomingMeetingsWidget';
 
@@ -23,6 +23,10 @@ const ClientDashboard = () => {
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
+                    <Button variant="outline" onClick={() => navigate('/client/create-project-request')} className="flex items-center gap-2">
+                        <PlusCircle className="w-4 h-4" />
+                        <span>Create Project Request</span>
+                    </Button>
                     <Button onClick={() => navigate('/client/find-freelancers')} className="flex items-center gap-2">
                         <Search className="w-4 h-4" />
                         <span>Find Talent</span>

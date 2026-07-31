@@ -59,6 +59,7 @@ const ProjectRequests = () => {
             case 'accepted': return <CheckCircle className="w-5 h-5 text-success" />;
             case 'rejected': return <XCircle className="w-5 h-5 text-error" />;
             case 'cancelled': return <Slash className="w-5 h-5 text-on-surface-variant" />;
+            case 'Open': return <Clock className="w-5 h-5 text-primary" />;
             default: return <Clock className="w-5 h-5" />;
         }
     };
@@ -130,7 +131,11 @@ const ProjectRequests = () => {
                                     <div className="flex flex-wrap items-center gap-4 text-label-md text-on-surface">
                                         <div className="flex items-center gap-2">
                                             <IndianRupee className="w-4 h-4 text-primary" />
-                                            <span className="font-semibold">{req.budget.toLocaleString('en-IN')}</span>
+                                            <span className="font-semibold">
+                                                {req.budget && typeof req.budget === 'object'
+                                                    ? `${Number(req.budget.min || 0).toLocaleString('en-IN')} – ${Number(req.budget.max || 0).toLocaleString('en-IN')}`
+                                                    : Number(req.budget || 0).toLocaleString('en-IN')}
+                                            </span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <Calendar className="w-4 h-4 text-tertiary" />
@@ -138,7 +143,7 @@ const ProjectRequests = () => {
                                         </div>
                                         <div className="flex items-center gap-2 text-on-surface-variant">
                                             {user?.role === 'client' ? (
-                                                <span>To: {req.freelancer?.fullName}</span>
+                                                <span>{req.requestType === 'marketplace' ? 'Public marketplace request' : `To: ${req.freelancer?.fullName || 'Freelancer'}`}</span>
                                             ) : (
                                                 <span>From: {req.client?.fullName}</span>
                                             )}

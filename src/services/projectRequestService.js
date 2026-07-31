@@ -9,6 +9,8 @@ export const createProjectRequest = async (requestData) => {
     }
 };
 
+export const createMarketplaceProjectRequest = createProjectRequest;
+
 export const getMyProjectRequests = async () => {
     try {
         const response = await api.get('/project-requests');

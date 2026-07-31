@@ -5,7 +5,7 @@ import User from '../models/User.js';
 // @desc    Create a new project request
 // @route   POST /api/project-requests
 // @access  Private (Client only)
-export const createRequest = async (req, res) => {
+export const createProjectRequest = async (req, res) => {
     try {
         if (req.user.role !== 'client') {
             return res.status(403).json({
@@ -15,10 +15,55 @@ export const createRequest = async (req, res) => {
             });
         }
 
-        const { freelancerId, title, description, budget, deadline } = req.body;
+        const { freelancerId, title, description, category, skills, budget, deadline, projectType } = req.body;
         const normalizedTitle = typeof title === 'string' ? title.trim() : '';
-        const numericBudget = Number(budget);
         const deadlineDate = new Date(deadline);
+
+        // Marketplace requests intentionally have no selected freelancer.
+        if (!freelancerId) {
+            const normalizedDescription = typeof description === 'string' ? description.trim() : '';
+            const normalizedCategory = typeof category === 'string' ? category.trim() : '';
+            const normalizedSkills = Array.isArray(skills)
+                ? [...new Set(skills.map(skill => String(skill).trim()).filter(Boolean))]
+                : [];
+            const minimumBudget = Number(budget?.min);
+            const maximumBudget = Number(budget?.max);
+            const validProjectTypes = ['fixed-price', 'hourly'];
+
+            if (!normalizedTitle || !normalizedDescription || !normalizedCategory || normalizedSkills.length === 0) {
+                return res.status(400).json({ success: false, message: 'Title, description, category, and at least one skill are required.', data: null });
+            }
+            if (!Number.isFinite(minimumBudget) || !Number.isFinite(maximumBudget) || minimumBudget < 0 || maximumBudget < 0 || minimumBudget > maximumBudget) {
+                return res.status(400).json({ success: false, message: 'Provide a valid budget range where minimum budget is not greater than maximum budget.', data: null });
+            }
+            if (Number.isNaN(deadlineDate.getTime()) || deadlineDate <= new Date()) {
+                return res.status(400).json({ success: false, message: 'Provide a valid future deadline.', data: null });
+            }
+            if (!validProjectTypes.includes(projectType)) {
+                return res.status(400).json({ success: false, message: 'Project type must be fixed-price or hourly.', data: null });
+            }
+
+            const marketplaceRequest = await ProjectRequest.create({
+                client: req.user._id,
+                title: normalizedTitle,
+                description: normalizedDescription,
+                category: normalizedCategory,
+                skills: normalizedSkills,
+                budget: { min: minimumBudget, max: maximumBudget },
+                deadline: deadlineDate,
+                projectType,
+                requestType: 'marketplace',
+                status: 'Open'
+            });
+
+            return res.status(201).json({
+                success: true,
+                message: 'Project request created successfully',
+                data: marketplaceRequest
+            });
+        }
+
+        const numericBudget = Number(budget);
 
         if (!normalizedTitle || !description?.trim() || !Number.isFinite(numericBudget) || numericBudget <= 0 || Number.isNaN(deadlineDate.getTime()) || deadlineDate <= new Date()) {
             return res.status(400).json({
@@ -70,6 +115,7 @@ export const createRequest = async (req, res) => {
             description,
             budget: numericBudget,
             deadline: deadlineDate,
+            requestType: 'targeted',
             status: 'pending'
         });
 
@@ -92,6 +138,9 @@ export const createRequest = async (req, res) => {
         });
     }
 };
+
+// Backward-compatible export for existing imports.
+export const createRequest = createProjectRequest;
 
 // @desc    Get all project requests for the logged-in user
 // @route   GET /api/project-requests
@@ -207,7 +256,7 @@ export const updateRequestStatus = async (req, res) => {
 
         let createdProject = null;
 
-        if (status === 'accepted') {
+        if (status === 'accepted' && request.requestType !== 'marketplace') {
             const existingProject = await Project.findOne({ projectRequest: request._id });
             if (!existingProject) {
                 createdProject = await Project.create({
