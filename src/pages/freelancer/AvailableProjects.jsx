@@ -17,13 +17,15 @@ const AvailableProjects = () => {
   useEffect(() => {
     const loadProjects = async () => {
       try {
-        const [projectResponse, proposalResponse] = await Promise.all([
-          getMarketplaceProjectRequests(),
-          getMyProposals()
-        ]);
+        const projectResponse = await getMarketplaceProjectRequests();
         setProjects(Array.isArray(projectResponse?.data) ? projectResponse.data : []);
-        const proposalMap = Object.fromEntries((proposalResponse?.data || []).map(proposal => [String(proposal.projectRequest), proposal]));
-        setProposalsByRequest(proposalMap);
+        try {
+          const proposalResponse = await getMyProposals();
+          const proposalMap = Object.fromEntries((proposalResponse?.data || []).map(proposal => [String(proposal.projectRequest), proposal]));
+          setProposalsByRequest(proposalMap);
+        } catch (proposalError) {
+          console.error('Failed to load submitted proposal status:', proposalError.message);
+        }
       } catch (error) {
         toast.error(error.message || 'Failed to load available projects.');
       } finally {
@@ -83,14 +85,21 @@ const AvailableProjects = () => {
                     <div className="mt-2 flex flex-wrap gap-4 text-on-surface-variant"><span>Budget: ₹{Number(proposal.proposedBudget).toLocaleString('en-IN')}</span><span>Delivery: {proposal.deliveryDays} days</span></div>
                   </div>
                 ) : (
-                  <div className="flex justify-end"><Button onClick={() => setSelectedProject(project)}>Send Proposal</Button></div>
+                  <div className="flex justify-end"><Button type="button" onClick={() => setSelectedProject(project)}>Send Proposal</Button></div>
                 )}
               </Card>
             );
           })}
         </div>
       )}
-      {selectedProject && <ProposalModal project={selectedProject} onClose={() => setSelectedProject(null)} onSubmitted={proposal => setProposalsByRequest(current => ({ ...current, [String(selectedProject._id)]: proposal }))} />}
+      {selectedProject && (
+        <ProposalModal
+          projectRequestId={selectedProject._id}
+          projectTitle={selectedProject.title}
+          onClose={() => setSelectedProject(null)}
+          onSubmitted={proposal => setProposalsByRequest(current => ({ ...current, [String(selectedProject._id)]: proposal }))}
+        />
+      )}
     </div>
   );
 };

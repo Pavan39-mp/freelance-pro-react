@@ -5,7 +5,7 @@ import Button from '../ui/Button';
 import AutoResizeTextarea from '../ui/AutoResizeTextarea';
 import { createProposal } from '../../services/projectProposalService';
 
-const ProposalModal = ({ project, onClose, onSubmitted }) => {
+const ProposalModal = ({ projectRequestId, projectTitle, onClose, onSubmitted }) => {
   const [formData, setFormData] = useState({ proposedBudget: '', deliveryDays: '', message: '' });
   const [submitting, setSubmitting] = useState(false);
 
@@ -35,8 +35,8 @@ const ProposalModal = ({ project, onClose, onSubmitted }) => {
 
     setSubmitting(true);
     try {
-      const response = await createProposal({ projectRequest: project._id, proposedBudget, deliveryDays, message });
-      toast.success('Proposal submitted successfully.');
+      const response = await createProposal({ projectRequest: projectRequestId, proposedBudget, deliveryDays, message });
+      toast.success('Proposal submitted successfully');
       onSubmitted(response.data);
       onClose();
     } catch (error) {
@@ -56,7 +56,7 @@ const ProposalModal = ({ project, onClose, onSubmitted }) => {
         <form onSubmit={handleSubmit} className="space-y-5 p-6">
           <div>
             <label className="mb-1 block text-label-md text-on-surface-variant">Project</label>
-            <input value={project.title} readOnly className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-high/50 px-4 py-3 text-on-surface opacity-80" />
+            <input value={projectTitle} readOnly className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-high/50 px-4 py-3 text-on-surface opacity-80" />
           </div>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <div>
