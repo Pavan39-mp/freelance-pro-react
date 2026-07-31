@@ -170,10 +170,12 @@ export const TaskProvider = ({ children }) => {
 
   const deleteTask = async (id) => {
     try {
-      await taskService.deleteTask(id);
+      const result = await taskService.deleteTask(id);
       setRawTasks(prev => prev.filter(t => t._id !== id && t.id !== id));
+      return result;
     } catch (err) {
       console.error('Error deleting task:', err.message);
+      throw err;
     }
   };
 

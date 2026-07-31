@@ -6,6 +6,7 @@ import { CheckCircle2, Clock, Circle, AlertCircle, Calendar, Plus, Trash2, Alert
 import AddTaskForm from '../components/forms/AddTaskForm';
 import Card from '../components/ui/Card';
 import TaskDetailsDrawer from '../components/ui/TaskDetailsDrawer';
+import toast from 'react-hot-toast';
 
 const Tasks = () => {
   const location = useLocation();
@@ -42,10 +43,13 @@ const Tasks = () => {
     setSortOrder,
     totalPages,
     totalCount,
-    deleteTask
+    deleteTask,
+    refreshTasks
   } = useTasks();
 
   const [activeTask, setActiveTask] = useState(null);
+  const [taskToDelete, setTaskToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -69,9 +73,23 @@ const Tasks = () => {
 
   const handleDelete = (e, id, title) => {
     e.stopPropagation(); // Prevent opening drawer
-    if (window.confirm(`Are you sure you want to delete task "${title}"?`)) {
-      deleteTask(id);
-      if (activeTask?.id === id) setActiveTask(null);
+    setTaskToDelete({ id, title });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!taskToDelete || isDeleting) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteTask(taskToDelete.id);
+      await refreshTasks();
+      if (activeTask?.id === taskToDelete.id) setActiveTask(null);
+      setTaskToDelete(null);
+      toast.success('Task deleted successfully');
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete task');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -269,6 +287,33 @@ const Tasks = () => {
       )}
 
       {showAddForm && <AddTaskForm onClose={() => setShowAddForm(false)} />}
+
+      {taskToDelete && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-surface/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-3xl border border-outline-variant/20 bg-surface-container-high p-6 shadow-2xl">
+            <h3 className="font-headline-sm text-headline-sm text-on-surface">Delete Task</h3>
+            <p className="mt-3 text-body-md text-on-surface-variant">Are you sure you want to delete this task?</p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setTaskToDelete(null)}
+                disabled={isDeleting}
+                className="px-4 py-2.5 rounded-xl border border-outline-variant/20 text-on-surface font-label-caps text-label-caps font-bold transition-colors hover:bg-surface-variant/50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                className="px-4 py-2.5 rounded-xl bg-error text-on-error font-label-caps text-label-caps font-bold transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Task Details Drawer */}
       <TaskDetailsDrawer
