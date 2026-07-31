@@ -181,6 +181,51 @@ export const getMyRequests = async (req, res) => {
     }
 };
 
+// @desc    Get open marketplace requests with simple skill matching
+// @route   GET /api/project-requests/marketplace
+// @access  Private (Freelancer only)
+export const getMarketplaceRequests = async (req, res) => {
+    try {
+        if (req.user.role !== 'freelancer') {
+            return res.status(403).json({ success: false, message: 'Only freelancers can access marketplace projects', data: null });
+        }
+
+        const freelancerSkills = new Set(
+            String(req.user.skills || '')
+                .split(',')
+                .map(skill => skill.trim().toLowerCase())
+                .filter(Boolean)
+        );
+        const requests = await ProjectRequest.find({ requestType: 'marketplace', status: 'Open' })
+            .populate('client', 'fullName')
+            .sort({ createdAt: -1 });
+
+        const data = requests.map(request => {
+            const requiredSkills = (request.skills || []).map(skill => String(skill).trim()).filter(Boolean);
+            const matchedSkills = requiredSkills.filter(skill => freelancerSkills.has(skill.toLowerCase()));
+            return {
+                _id: request._id,
+                title: request.title,
+                description: request.description,
+                category: request.category,
+                skills: requiredSkills,
+                budget: request.budget,
+                deadline: request.deadline,
+                projectType: request.projectType,
+                status: request.status,
+                client: { name: request.client?.fullName || 'Client' },
+                matchedSkills,
+                matchPercentage: requiredSkills.length > 0 ? Math.floor((matchedSkills.length / requiredSkills.length) * 100) : 0,
+                createdAt: request.createdAt
+            };
+        });
+
+        return res.json({ success: true, message: 'Marketplace projects retrieved successfully', data });
+    } catch {
+        return res.status(500).json({ success: false, message: 'Server Error', data: null });
+    }
+};
+
 // @desc    Update request status
 // @route   PATCH /api/project-requests/:id/status
 // @access  Private

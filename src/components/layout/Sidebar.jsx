@@ -1,12 +1,13 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Rocket, LayoutDashboard, Users, Briefcase, ClipboardList, BarChart2, Settings, FileText, ReceiptIndianRupee, Mail, MessageSquare } from 'lucide-react';
+import { Rocket, LayoutDashboard, Users, Briefcase, ClipboardList, BarChart2, Settings, FileText, ReceiptIndianRupee, Mail, MessageSquare, Search } from 'lucide-react';
 
 const Sidebar = () => {
   const navItems = [
     { name: 'Dashboard', path: '/freelancer/dashboard', icon: LayoutDashboard },
     { name: 'Clients', path: '/freelancer/clients', icon: Users },
     { name: 'Projects', path: '/freelancer/projects', icon: Briefcase },
+    { name: 'Available Projects', path: '/freelancer/available-projects', icon: Search },
     { name: 'Tasks', path: '/freelancer/tasks', icon: ClipboardList },
     { name: 'Project Requests', path: '/freelancer/project-requests', icon: Mail },
     { name: 'Messages', path: '/freelancer/messages', icon: MessageSquare },

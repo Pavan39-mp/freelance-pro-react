@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 import User from '../models/User.js';
+import Project from '../models/Project.js';
+import FreelancerReview from '../models/FreelancerReview.js';
 import {
     isAvailabilityType,
     isExperienceLevel,
@@ -109,10 +111,44 @@ export const getFreelancerProfile = async (req, res, next) => {
         if (!user.isPublicProfile) {
             return res.status(403).json({ success: false, message: 'This freelancer profile is private', data: null });
         }
+        const [completedProjects, reviews] = await Promise.all([
+            Project.find({ createdBy: user._id, status: 'Completed' })
+                .select('name status updatedAt projectRequest')
+                .populate('projectRequest', 'category skills')
+                .sort({ updatedAt: -1 }),
+            FreelancerReview.find({ freelancer: user._id })
+                .select('rating reviewText communicationRating qualityRating deadlineRating createdAt')
+                .sort({ createdAt: -1 })
+        ]);
+
+        const average = field => reviews.length > 0
+            ? Number((reviews.reduce((sum, review) => sum + (Number(review[field]) || 0), 0) / reviews.length).toFixed(1))
+            : 0;
+        const credibility = {
+            averageRating: average('rating'),
+            communicationRating: average('communicationRating'),
+            qualityRating: average('qualityRating'),
+            deadlineRating: average('deadlineRating'),
+            totalReviews: reviews.length,
+            totalCompletedProjects: completedProjects.length,
+            reviews: reviews.map(review => ({
+                _id: review._id,
+                rating: review.rating,
+                reviewText: review.reviewText,
+                createdAt: review.createdAt
+            })),
+            completedProjects: completedProjects.map(project => ({
+                _id: project._id,
+                title: project.name,
+                category: project.projectRequest?.category || 'Project',
+                skills: project.projectRequest?.skills || [],
+                completionDate: project.updatedAt
+            }))
+        };
         return res.json({
             success: true,
             message: 'Freelancer profile retrieved successfully',
-            data: publicFreelancer(user)
+            data: { ...publicFreelancer(user), ...credibility }
         });
     } catch (error) {
         next(error);

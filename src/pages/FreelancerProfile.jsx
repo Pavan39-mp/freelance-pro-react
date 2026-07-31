@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { MapPin, Briefcase, Clock, Globe, ArrowLeft, Tag, CheckCircle, User } from 'lucide-react';
+import { MapPin, Briefcase, Clock, Globe, ArrowLeft, Tag, CheckCircle, User, Star, FolderCheck } from 'lucide-react';
 import { getFreelancerProfile } from '../services/freelancerService';
 import { createProjectRequest } from '../services/projectRequestService';
 import { createOrGetConversation } from '../services/messageService';
@@ -220,10 +220,67 @@ const FreelancerProfile = () => {
                             <p className="text-body-sm text-on-surface-variant italic">No specific services listed.</p>
                         )}
                     </Card>
+
+                    <Card className="p-8">
+                        <h3 className="font-title-lg font-bold text-on-surface mb-4 flex items-center gap-2">
+                            <FolderCheck className="w-5 h-5 text-tertiary" />
+                            Completed Projects
+                        </h3>
+                        {profile.completedProjects?.length > 0 ? (
+                            <div className="space-y-4">
+                                {profile.completedProjects.map(project => (
+                                    <div key={project._id} className="rounded-xl border border-outline-variant/20 bg-surface-container-low/50 p-4">
+                                        <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                                            <h4 className="font-title-md font-bold text-on-surface">{project.title}</h4>
+                                            <span className="text-body-sm text-on-surface-variant">{new Date(project.completionDate).toLocaleDateString()}</span>
+                                        </div>
+                                        <p className="mt-1 text-body-sm text-on-surface-variant">{project.category}</p>
+                                        {project.skills?.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{project.skills.map(skill => <span key={skill} className="rounded-lg bg-surface-variant/50 px-2.5 py-1 text-label-sm text-on-surface">{skill}</span>)}</div>}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-body-sm text-on-surface-variant italic">No completed projects to showcase yet.</p>
+                        )}
+                    </Card>
+
+                    <Card className="p-8">
+                        <h3 className="font-title-lg font-bold text-on-surface mb-4 flex items-center gap-2">
+                            <Star className="w-5 h-5 text-primary" />
+                            Reviews
+                        </h3>
+                        {profile.reviews?.length > 0 ? (
+                            <div className="space-y-4">
+                                {profile.reviews.map(review => (
+                                    <div key={review._id} className="rounded-xl border border-outline-variant/20 bg-surface-container-low/50 p-4">
+                                        <div className="flex items-center gap-2 text-primary"><Star className="h-4 w-4 fill-current" /><span className="font-bold">{Number(review.rating || 0).toFixed(1)}</span></div>
+                                        {review.reviewText && <p className="mt-2 text-body-md text-on-surface-variant whitespace-pre-wrap">{review.reviewText}</p>}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-body-sm text-on-surface-variant italic">No reviews yet.</p>
+                        )}
+                    </Card>
                 </div>
 
                 {/* Right Column (Sidebar metrics) */}
                 <div className="space-y-6">
+                    <Card className="p-6">
+                        <h3 className="font-title-md font-bold text-on-surface mb-4">Rating</h3>
+                        <div className="flex items-center gap-3">
+                            <div className="flex text-primary">
+                                {[1, 2, 3, 4, 5].map(value => <Star key={value} className={`h-5 w-5 ${value <= Math.round(profile.averageRating || 0) ? 'fill-current' : ''}`} />)}
+                            </div>
+                            <span className="font-title-md font-bold text-on-surface">{Number(profile.averageRating || 0).toFixed(1)}</span>
+                        </div>
+                        <p className="mt-3 text-body-sm text-on-surface-variant">Based on {profile.totalReviews || 0} reviews</p>
+                        <div className="mt-4 grid grid-cols-2 gap-3 border-t border-outline-variant/10 pt-4 text-center">
+                            <div><p className="font-title-md font-bold text-on-surface">{profile.totalCompletedProjects || 0}</p><p className="text-label-sm text-on-surface-variant">Completed projects</p></div>
+                            <div><p className="font-title-md font-bold text-on-surface">{profile.totalReviews || 0}</p><p className="text-label-sm text-on-surface-variant">Total reviews</p></div>
+                        </div>
+                    </Card>
+
                     <Card className="p-6">
                         <h3 className="font-title-md font-bold text-on-surface mb-4">Skills & Expertise</h3>
                         {skillsList.length > 0 ? (

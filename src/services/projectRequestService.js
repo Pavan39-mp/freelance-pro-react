@@ -20,6 +20,14 @@ export const getMyProjectRequests = async () => {
     }
 };
 
+export const getMarketplaceProjectRequests = async () => {
+    try {
+        return await api.get('/project-requests/marketplace');
+    } catch (error) {
+        throw error.response?.data || error;
+    }
+};
+
 export const updateRequestStatus = async (id, status) => {
     try {
         const response = await api.patch(`/project-requests/${id}/status`, { status });
