@@ -27,9 +27,13 @@ const AddTaskForm = ({ onClose }) => {
   const selectedProject = safeProjects.find(projectItem =>
     String(projectItem._id || projectItem.id) === String(formData.project)
   );
-  const projectDueDate = String(selectedProject?.dueDate || selectedProject?.deadline || '').split('T')[0];
-  const today = new Date().toISOString().split('T')[0];
-  const isProjectOverdue = projectDueDate && today > projectDueDate;
+  const projectDeadline = new Date(selectedProject?.dueDate);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  projectDeadline.setHours(0, 0, 0, 0);
+  const isProjectOverdue = selectedProject?.dueDate
+    && !Number.isNaN(projectDeadline.getTime())
+    && today > projectDeadline;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -62,7 +66,7 @@ const AddTaskForm = ({ onClose }) => {
       return;
     }
     if (isProjectOverdue) {
-      toast.error('This project deadline has passed. New tasks cannot be created.');
+      toast.error('Cannot create task. Project deadline has passed.');
       return;
     }
 
@@ -145,7 +149,7 @@ const AddTaskForm = ({ onClose }) => {
                   <p className="text-[10px] text-error ml-1 mt-1">This client has no projects.</p>
                 )}
                 {isProjectOverdue && (
-                  <p className="text-[10px] text-error ml-1 mt-1">This project deadline has passed. New tasks cannot be created.</p>
+                  <p className="text-[10px] text-error ml-1 mt-1">Cannot create task. Project deadline has passed.</p>
                 )}
               </div>
 
