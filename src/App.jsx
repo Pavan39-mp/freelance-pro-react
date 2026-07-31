@@ -48,6 +48,7 @@ import ClientProfile from './pages/client/ClientProfile';
 import ClientMeetings from './pages/client/ClientMeetings';
 import CreateProjectRequest from './pages/client/CreateProjectRequest';
 import AvailableProjects from './pages/freelancer/AvailableProjects';
+import ProjectProposals from './pages/client/ProjectProposals';
 
 const NotFound = () => (
   <div className="min-h-screen flex items-center justify-center bg-background p-6">
@@ -89,6 +90,7 @@ const App = () => {
                                       <Route path="/client/projects" element={<Projects />} />
                                       <Route path="/client/invoices" element={<Invoices />} />
                                       <Route path="/client/project-requests" element={<ProjectRequests />} />
+                                      <Route path="/client/project-proposals" element={<ProjectProposals />} />
                                       <Route path="/client/create-project-request" element={<CreateProjectRequest />} />
                                       <Route path="/client/messages" element={<ClientMessages />} />
                                       <Route path="/client/profile" element={<ClientProfile />} />

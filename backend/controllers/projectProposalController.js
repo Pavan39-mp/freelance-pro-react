@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import ProjectProposal from '../models/ProjectProposal.js';
 import ProjectRequest from '../models/ProjectRequest.js';
+import FreelancerReview from '../models/FreelancerReview.js';
+import Project from '../models/Project.js';
 
 // @desc    Submit a proposal for an open marketplace project request
 // @route   POST /api/project-proposals
@@ -61,6 +63,177 @@ export const createProposal = async (req, res, next) => {
         if (error?.code === 11000) {
             return res.status(409).json({ success: false, message: 'You have already submitted a proposal for this project', data: null });
         }
+        next(error);
+    }
+};
+
+// @desc    Get the authenticated freelancer's submitted proposals
+// @route   GET /api/project-proposals/mine
+// @access  Private (Freelancer only)
+export const getMyProposals = async (req, res, next) => {
+    try {
+        const proposals = await ProjectProposal.find({ freelancer: req.user._id })
+            .select('projectRequest proposedBudget deliveryDays message status createdAt')
+            .sort({ createdAt: -1 });
+        return res.json({ success: true, message: 'Proposals retrieved successfully', data: proposals });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Get marketplace requests owned by the client with proposal counts
+// @route   GET /api/project-proposals/client
+// @access  Private (Client only)
+export const getClientProposalProjects = async (req, res, next) => {
+    try {
+        const requests = await ProjectRequest.find({ client: req.user._id, requestType: 'marketplace' })
+            .select('title category skills budget deadline projectType status createdAt')
+            .sort({ createdAt: -1 });
+        const counts = await ProjectProposal.aggregate([
+            { $match: { projectRequest: { $in: requests.map(request => request._id) } } },
+            { $group: { _id: '$projectRequest', count: { $sum: 1 } } }
+        ]);
+        const countByRequest = new Map(counts.map(item => [String(item._id), item.count]));
+        return res.json({
+            success: true,
+            message: 'Client marketplace projects retrieved successfully',
+            data: requests.map(request => ({
+                ...request.toObject(),
+                proposalCount: countByRequest.get(String(request._id)) || 0
+            }))
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Get proposals for one marketplace request owned by the client
+// @route   GET /api/project-proposals/:projectRequestId
+// @access  Private (Client owner only)
+export const getProjectProposals = async (req, res, next) => {
+    try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.projectRequestId)) {
+            return res.status(400).json({ success: false, message: 'Invalid project request ID', data: null });
+        }
+        const request = await ProjectRequest.findOne({
+            _id: req.params.projectRequestId,
+            client: req.user._id,
+            requestType: 'marketplace'
+        }).select('title status');
+        if (!request) {
+            return res.status(404).json({ success: false, message: 'Marketplace project request not found', data: null });
+        }
+
+        const proposals = await ProjectProposal.find({ projectRequest: request._id })
+            .populate('freelancer', 'fullName avatar title skills experienceYears')
+            .sort({ createdAt: -1 });
+        const data = await Promise.all(proposals.map(async proposal => {
+            const freelancerId = proposal.freelancer?._id;
+            const [reviews, completedProjects] = await Promise.all([
+                FreelancerReview.find({ freelancer: freelancerId }).select('rating'),
+                Project.find({ createdBy: freelancerId, status: 'Completed' })
+                    .select('name updatedAt projectRequest')
+                    .populate('projectRequest', 'category skills')
+                    .sort({ updatedAt: -1 })
+            ]);
+            const averageRating = reviews.length > 0
+                ? Number((reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviews.length).toFixed(1))
+                : 0;
+            return {
+                _id: proposal._id,
+                proposedBudget: proposal.proposedBudget,
+                deliveryDays: proposal.deliveryDays,
+                message: proposal.message,
+                status: proposal.status,
+                createdAt: proposal.createdAt,
+                freelancer: {
+                    _id: freelancerId,
+                    name: proposal.freelancer?.fullName || 'Freelancer',
+                    profilePicture: proposal.freelancer?.avatar || '',
+                    title: proposal.freelancer?.title || '',
+                    skills: proposal.freelancer?.skills || '',
+                    experienceYears: proposal.freelancer?.experienceYears || 0,
+                    averageRating,
+                    totalReviews: reviews.length,
+                    completedProjects: completedProjects.length,
+                    previousWork: completedProjects.map(project => ({
+                        _id: project._id,
+                        title: project.name,
+                        category: project.projectRequest?.category || 'Project',
+                        skills: project.projectRequest?.skills || [],
+                        completionDate: project.updatedAt
+                    }))
+                }
+            };
+        }));
+
+        return res.json({ success: true, message: 'Project proposals retrieved successfully', data: { projectRequest: request, proposals: data } });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Accept or reject a proposal without converting it into a Project
+// @route   PATCH /api/project-proposals/:proposalId/status
+// @access  Private (Client owner only)
+export const updateProposalStatus = async (req, res, next) => {
+    try {
+        const { status } = req.body;
+        if (!['Accepted', 'Rejected'].includes(status)) {
+            return res.status(400).json({ success: false, message: 'Proposal status must be Accepted or Rejected', data: null });
+        }
+        if (!mongoose.Types.ObjectId.isValid(req.params.proposalId)) {
+            return res.status(400).json({ success: false, message: 'Invalid proposal ID', data: null });
+        }
+        const proposal = await ProjectProposal.findById(req.params.proposalId);
+        if (!proposal) {
+            return res.status(404).json({ success: false, message: 'Proposal not found', data: null });
+        }
+        const request = await ProjectRequest.findOne({
+            _id: proposal.projectRequest,
+            client: req.user._id,
+            requestType: 'marketplace'
+        });
+        if (!request) {
+            return res.status(403).json({ success: false, message: 'Not authorized to manage this proposal', data: null });
+        }
+        if (proposal.status !== 'Pending') {
+            return res.status(400).json({ success: false, message: `Proposal is already ${proposal.status}`, data: null });
+        }
+
+        if (status === 'Accepted') {
+            const acceptedProposal = await ProjectProposal.findOne({ projectRequest: request._id, status: 'Accepted' }).select('_id');
+            if (acceptedProposal) {
+                return res.status(409).json({ success: false, message: 'A proposal has already been accepted for this project', data: null });
+            }
+            const claimedRequest = await ProjectRequest.findOneAndUpdate(
+                {
+                    _id: request._id,
+                    client: req.user._id,
+                    requestType: 'marketplace',
+                    status: { $in: ['Open', 'Under Review'] }
+                },
+                { $set: { status: 'Assigned', freelancer: proposal.freelancer } },
+                { new: true }
+            );
+            if (!claimedRequest) {
+                return res.status(409).json({ success: false, message: 'A proposal has already been accepted for this project', data: null });
+            }
+            proposal.status = 'Accepted';
+            await Promise.all([
+                proposal.save(),
+                ProjectProposal.updateMany(
+                    { projectRequest: request._id, _id: { $ne: proposal._id }, status: 'Pending' },
+                    { status: 'Rejected' }
+                )
+            ]);
+        } else {
+            proposal.status = 'Rejected';
+            await proposal.save();
+        }
+
+        return res.json({ success: true, message: `Proposal ${status.toLowerCase()} successfully`, data: proposal });
+    } catch (error) {
         next(error);
     }
 };

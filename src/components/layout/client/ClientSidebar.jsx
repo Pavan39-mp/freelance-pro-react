@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Rocket, LayoutDashboard, Search, Briefcase, ClipboardList, MessageSquare, Bell, Settings, ReceiptIndianRupee, Video, PlusCircle } from 'lucide-react';
+import { Rocket, LayoutDashboard, Search, Briefcase, ClipboardList, MessageSquare, Bell, Settings, ReceiptIndianRupee, Video, PlusCircle, Inbox } from 'lucide-react';
 
 const ClientSidebar = () => {
   const navItems = [
@@ -10,6 +10,7 @@ const ClientSidebar = () => {
     { name: 'Create Project Request', path: '/client/create-project-request', icon: PlusCircle },
     { name: 'Invoices', path: '/client/invoices', icon: ReceiptIndianRupee },
     { name: 'Project Requests', path: '/client/project-requests', icon: ClipboardList },
+    { name: 'Project Proposals', path: '/client/project-proposals', icon: Inbox },
     { name: 'Messages', path: '/client/messages', icon: MessageSquare },
     { name: 'Meetings', path: '/client/meetings', icon: Video },
     { name: 'Notifications', path: '/client/notifications', icon: Bell },

@@ -4,16 +4,26 @@ import toast from 'react-hot-toast';
 import Card from '../../components/ui/Card';
 import TextPreview from '../../components/ui/TextPreview';
 import { getMarketplaceProjectRequests } from '../../services/projectRequestService';
+import { getMyProposals } from '../../services/projectProposalService';
+import Button from '../../components/ui/Button';
+import ProposalModal from '../../components/modals/ProposalModal';
 
 const AvailableProjects = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [proposalsByRequest, setProposalsByRequest] = useState({});
+  const [selectedProject, setSelectedProject] = useState(null);
 
   useEffect(() => {
     const loadProjects = async () => {
       try {
-        const response = await getMarketplaceProjectRequests();
-        setProjects(Array.isArray(response?.data) ? response.data : []);
+        const [projectResponse, proposalResponse] = await Promise.all([
+          getMarketplaceProjectRequests(),
+          getMyProposals()
+        ]);
+        setProjects(Array.isArray(projectResponse?.data) ? projectResponse.data : []);
+        const proposalMap = Object.fromEntries((proposalResponse?.data || []).map(proposal => [String(proposal.projectRequest), proposal]));
+        setProposalsByRequest(proposalMap);
       } catch (error) {
         toast.error(error.message || 'Failed to load available projects.');
       } finally {
@@ -41,6 +51,7 @@ const AvailableProjects = () => {
           {projects.map(project => {
             const deadline = new Date(project.deadline);
             const daysRemaining = Math.max(0, Math.ceil((deadline.getTime() - Date.now()) / 86400000));
+            const proposal = proposalsByRequest[String(project._id)];
             return (
               <Card key={project._id} className="space-y-5 p-6">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -66,11 +77,20 @@ const AvailableProjects = () => {
                   <span className="flex items-center gap-1 font-semibold text-on-surface"><IndianRupee className="h-4 w-4 text-primary" />{Number(project.budget?.min || 0).toLocaleString('en-IN')} – ₹{Number(project.budget?.max || 0).toLocaleString('en-IN')}</span>
                   <span className="flex items-center gap-2"><Calendar className="h-4 w-4" />{deadline.toLocaleDateString()} · {daysRemaining} days remaining</span>
                 </div>
+                {proposal ? (
+                  <div className="rounded-xl bg-primary/10 p-4 text-body-sm">
+                    <div className="flex items-center justify-between gap-3"><span className="font-bold text-primary">Proposal Sent ✓</span><span className="font-semibold text-on-surface">{proposal.status}</span></div>
+                    <div className="mt-2 flex flex-wrap gap-4 text-on-surface-variant"><span>Budget: ₹{Number(proposal.proposedBudget).toLocaleString('en-IN')}</span><span>Delivery: {proposal.deliveryDays} days</span></div>
+                  </div>
+                ) : (
+                  <div className="flex justify-end"><Button onClick={() => setSelectedProject(project)}>Send Proposal</Button></div>
+                )}
               </Card>
             );
           })}
         </div>
       )}
+      {selectedProject && <ProposalModal project={selectedProject} onClose={() => setSelectedProject(null)} onSubmitted={proposal => setProposalsByRequest(current => ({ ...current, [String(selectedProject._id)]: proposal }))} />}
     </div>
   );
 };

@@ -7,3 +7,11 @@ export const createProposal = async (proposalData) => {
         throw error.response?.data || error;
     }
 };
+
+export const getMyProposals = async () => api.get('/project-proposals/mine');
+
+export const getClientProposalProjects = async () => api.get('/project-proposals/client');
+
+export const getProjectProposals = async (projectRequestId) => api.get(`/project-proposals/${projectRequestId}`);
+
+export const updateProposalStatus = async (proposalId, status) => api.patch(`/project-proposals/${proposalId}/status`, { status });
