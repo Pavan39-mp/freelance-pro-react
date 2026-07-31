@@ -3,6 +3,7 @@ import ProjectProposal from '../models/ProjectProposal.js';
 import ProjectRequest from '../models/ProjectRequest.js';
 import FreelancerReview from '../models/FreelancerReview.js';
 import Project from '../models/Project.js';
+import Notification from '../models/Notification.js';
 
 // @desc    Submit a proposal for an open marketplace project request
 // @route   POST /api/project-proposals
@@ -173,7 +174,7 @@ export const getProjectProposals = async (req, res, next) => {
     }
 };
 
-// @desc    Accept or reject a proposal without converting it into a Project
+// @desc    Accept or reject a proposal and convert an accepted proposal into a Project
 // @route   PATCH /api/project-proposals/:proposalId/status
 // @access  Private (Client owner only)
 export const updateProposalStatus = async (req, res, next) => {
@@ -197,28 +198,54 @@ export const updateProposalStatus = async (req, res, next) => {
         if (!request) {
             return res.status(403).json({ success: false, message: 'Not authorized to manage this proposal', data: null });
         }
-        if (proposal.status !== 'Pending') {
+        if (proposal.status !== 'Pending' && !(status === 'Accepted' && proposal.status === 'Accepted')) {
             return res.status(400).json({ success: false, message: `Proposal is already ${proposal.status}`, data: null });
         }
 
+        let createdProject = null;
         if (status === 'Accepted') {
-            const acceptedProposal = await ProjectProposal.findOne({ projectRequest: request._id, status: 'Accepted' }).select('_id');
+            const acceptedProposal = await ProjectProposal.findOne({
+                projectRequest: request._id,
+                status: 'Accepted',
+                _id: { $ne: proposal._id }
+            }).select('_id');
             if (acceptedProposal) {
                 return res.status(409).json({ success: false, message: 'A proposal has already been accepted for this project', data: null });
             }
-            const claimedRequest = await ProjectRequest.findOneAndUpdate(
-                {
-                    _id: request._id,
-                    client: req.user._id,
-                    requestType: 'marketplace',
-                    status: { $in: ['Open', 'Under Review'] }
-                },
-                { $set: { status: 'Assigned', freelancer: proposal.freelancer } },
-                { new: true }
-            );
-            if (!claimedRequest) {
-                return res.status(409).json({ success: false, message: 'A proposal has already been accepted for this project', data: null });
+
+            const alreadyAssignedToFreelancer = request.status === 'Assigned'
+                && String(request.freelancer) === String(proposal.freelancer);
+            if (!alreadyAssignedToFreelancer) {
+                const claimedRequest = await ProjectRequest.findOneAndUpdate(
+                    {
+                        _id: request._id,
+                        client: req.user._id,
+                        requestType: 'marketplace',
+                        status: { $in: ['Open', 'Under Review'] }
+                    },
+                    { $set: { status: 'Assigned', freelancer: proposal.freelancer } },
+                    { new: true }
+                );
+                if (!claimedRequest) {
+                    return res.status(409).json({ success: false, message: 'A proposal has already been accepted for this project', data: null });
+                }
             }
+
+            createdProject = await Project.findOne({ projectRequest: request._id });
+            const isNewProject = !createdProject;
+            if (!createdProject) {
+                createdProject = await Project.create({
+                    name: request.title,
+                    description: request.description,
+                    budget: proposal.proposedBudget,
+                    dueDate: request.deadline ? new Date(request.deadline).toISOString().split('T')[0] : '',
+                    platformClient: req.user._id,
+                    createdBy: proposal.freelancer,
+                    projectRequest: request._id,
+                    status: 'To Do'
+                });
+            }
+
             proposal.status = 'Accepted';
             await Promise.all([
                 proposal.save(),
@@ -227,12 +254,38 @@ export const updateProposalStatus = async (req, res, next) => {
                     { status: 'Rejected' }
                 )
             ]);
+
+            if (isNewProject) {
+                await Notification.insertMany([
+                    {
+                        type: 'project',
+                        title: 'Project Created',
+                        message: 'Freelancer accepted and project created',
+                        user: req.user._id,
+                        sender: proposal.freelancer,
+                        link: '/client/projects'
+                    },
+                    {
+                        type: 'project',
+                        title: 'Selected for Project',
+                        message: 'You have been selected for a project',
+                        user: proposal.freelancer,
+                        sender: req.user._id,
+                        link: '/freelancer/projects'
+                    }
+                ]);
+            }
         } else {
             proposal.status = 'Rejected';
             await proposal.save();
         }
 
-        return res.json({ success: true, message: `Proposal ${status.toLowerCase()} successfully`, data: proposal });
+        return res.json({
+            success: true,
+            message: `Proposal ${status.toLowerCase()} successfully`,
+            data: proposal,
+            project: createdProject
+        });
     } catch (error) {
         next(error);
     }
