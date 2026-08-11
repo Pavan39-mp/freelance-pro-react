@@ -315,8 +315,8 @@ const Invoices = () => {
                     </div>
                 ) : (
                     <>
-                        <div className="hidden md:block overflow-visible">
-                            <table className="w-full">
+                        <div className="hidden md:block overflow-x-auto custom-scrollbar">
+                            <table className="w-full min-w-[900px]">
                                 <thead>
                                     <tr className="border-b border-outline-variant/10 bg-surface-container-low/40">
                                         {['Invoice #', 'Client / Project', 'Due Date', 'Total', 'Paid', 'Outstanding', 'Status', ''].map(h => (

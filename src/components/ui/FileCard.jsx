@@ -1,7 +1,7 @@
 import React from 'react';
-import { FileText, Image as ImageIcon, FileCode, Download, Trash2, Upload } from 'lucide-react';
+import { FileText, Image as ImageIcon, FileCode, Download, Trash2 } from 'lucide-react';
 
-const FileCard = ({ file, onDelete, showDelete = false }) => {
+const FileCard = ({ file, onDownload, onDelete, showDelete = false }) => {
 
     // Resolve absolute URL to Express backend reliably in case it's a relative path
     const getFileUrl = (url) => {
@@ -54,6 +54,11 @@ const FileCard = ({ file, onDelete, showDelete = false }) => {
         e.preventDefault();
         e.stopPropagation();
 
+        if (onDownload) {
+            await onDownload(file);
+            return;
+        }
+
         // Prevent default fetch on blob URLs and data URIs
         if (resolvedUrl.startsWith('blob:') || resolvedUrl.startsWith('data:')) {
             const tempLink = document.createElement('a');
@@ -84,7 +89,7 @@ const FileCard = ({ file, onDelete, showDelete = false }) => {
         <div className="relative flex items-center gap-3 p-3 bg-surface-container-high hover:bg-surface-container-highest cursor-pointer rounded-xl border border-outline-variant/10 transition-colors group">
 
             {/* Absolute positioning link to make whole card perfectly responsive to browser targeting safely */}
-            {resolvedUrl !== '#' && (
+            {!onDownload && resolvedUrl !== '#' && (
                 <a
                     href={resolvedUrl}
                     target="_blank"

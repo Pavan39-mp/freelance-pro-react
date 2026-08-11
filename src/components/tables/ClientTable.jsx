@@ -244,8 +244,8 @@ const ClientTable = ({
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto transition-all duration-300">
-        <table className="w-full text-left border-collapse">
+      <div className="overflow-x-auto custom-scrollbar transition-all duration-300">
+        <table className="w-full min-w-[900px] text-left border-collapse">
           <thead>
             <tr className="bg-surface-container-high/30 border-b border-outline-variant/10 select-none">
               <th onClick={() => handleSort('name')} className="px-8 py-5 font-label-caps text-[11px] text-on-surface-variant tracking-widest font-bold cursor-pointer hover:text-primary transition-colors">

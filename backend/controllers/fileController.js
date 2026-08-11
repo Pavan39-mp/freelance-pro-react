@@ -10,10 +10,14 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Helper to check if user has access to a project
-const checkProjectAccess = async (projectId, userId) => {
-    const project = await Project.findOne({ _id: projectId, createdBy: userId });
-    return !!project;
+// Match authenticated users to the actual ownership fields in the Project schema.
+const checkProjectAccess = async (projectId, user) => {
+    const ownershipField = user.role === 'client' ? 'platformClient' : 'createdBy';
+    const project = await Project.findOne({
+        _id: projectId,
+        [ownershipField]: user._id
+    }).select('_id');
+    return Boolean(project);
 };
 
 // @desc    Upload file to a project (and optionally a task)
@@ -37,7 +41,7 @@ export const uploadFile = async (req, res, next) => {
         const userId = req.user._id;
 
         // Check project access
-        const hasAccess = await checkProjectAccess(projectId, userId);
+        const hasAccess = await checkProjectAccess(projectId, req.user);
         if (!hasAccess) {
             fs.unlinkSync(req.file.path);
             res.status(403);
@@ -123,15 +127,13 @@ export const uploadFile = async (req, res, next) => {
 export const getProjectFiles = async (req, res, next) => {
     try {
         const { projectId } = req.params;
-        const userId = req.user._id;
-
-        const hasAccess = await checkProjectAccess(projectId, userId);
+        const hasAccess = await checkProjectAccess(projectId, req.user);
         if (!hasAccess) {
             res.status(403);
             throw new Error('Not authorized to view files for this project');
         }
 
-        const files = await File.find({ projectId, uploadedBy: userId }).sort({ createdAt: -1 });
+        const files = await File.find({ projectId }).sort({ createdAt: -1 });
 
         res.json({
             success: true,
@@ -148,10 +150,16 @@ export const getProjectFiles = async (req, res, next) => {
 // @access  Private
 export const downloadFile = async (req, res, next) => {
     try {
-        const fileRecord = await File.findOne({ _id: req.params.id, uploadedBy: req.user._id });
+        const fileRecord = await File.findById(req.params.id);
         if (!fileRecord) {
             res.status(404);
             throw new Error('File not found');
+        }
+
+        const hasAccess = await checkProjectAccess(fileRecord.projectId, req.user);
+        if (!hasAccess) {
+            res.status(403);
+            throw new Error('Not authorized to download this file');
         }
 
         const filePath = path.join(__dirname, '..', 'uploads', fileRecord.storedName);

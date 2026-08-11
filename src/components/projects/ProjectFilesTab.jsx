@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useUser } from '../../context/UserContext';
-import { Upload, Search, Download, Trash2, FileText, Image, FileCode, AlertCircle } from 'lucide-react';
-import api from '../../services/api';
+import { Upload, Search, FileText, AlertCircle } from 'lucide-react';
+import * as fileService from '../../services/fileService';
 import FileCard from '../ui/FileCard';
 
 const ProjectFilesTab = ({ project }) => {
@@ -15,13 +15,14 @@ const ProjectFilesTab = ({ project }) => {
     const fileInputRef = useRef(null);
 
     const projectId = project?._id || project?.id;
+    const canManageFiles = user?.role === 'freelancer';
 
     const fetchFiles = async () => {
         if (!projectId) return;
         setLoading(true);
         setError(null);
         try {
-            const res = await api.get(`/files/project/${projectId}`);
+            const res = await fileService.getProjectFiles(projectId);
             if (res?.success) {
                 setFiles(res.data || []);
             } else {
@@ -58,7 +59,7 @@ const ProjectFilesTab = ({ project }) => {
         formData.append('projectId', projectId);
 
         try {
-            const res = await api.post('/files/upload', formData);
+            const res = await fileService.uploadProjectFile(formData);
             if (res?.success) {
                 fetchFiles();
             } else {
@@ -72,18 +73,26 @@ const ProjectFilesTab = ({ project }) => {
         }
     };
 
-    const handleDownload = (fileRecord) => {
-        if (fileRecord.url) {
-            window.open(fileRecord.url, '_blank');
-        } else {
-            alert('Download URL not found');
+    const handleDownload = async (fileRecord) => {
+        try {
+            const blob = await fileService.downloadFile(fileRecord._id);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileRecord.originalName || 'download';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            setError(err?.message || 'Download failed');
         }
     };
 
     const handleDelete = async (fileId) => {
         if (!window.confirm('Are you sure you want to delete this file?')) return;
         try {
-            const res = await api.delete(`/files/${fileId}`);
+            const res = await fileService.deleteFile(fileId);
             if (res?.success) {
                 setFiles(prev => prev.filter(f => f._id !== fileId));
             } else {
@@ -92,14 +101,6 @@ const ProjectFilesTab = ({ project }) => {
         } catch (err) {
             alert(err?.message || 'Delete failed');
         }
-    };
-
-    const formatSize = (bytes) => {
-        if (!bytes) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     };
 
     const getCategory = (mimeType, filename) => {
@@ -127,7 +128,7 @@ const ProjectFilesTab = ({ project }) => {
 
     return (
         <div className="space-y-6 animate-in fade-in">
-            {user?.role !== 'client' && (
+            {canManageFiles && (
                 <>
                     {/* Hidden Input file selector */}
                     <input
@@ -199,8 +200,9 @@ const ProjectFilesTab = ({ project }) => {
                             <FileCard
                                 key={file._id}
                                 file={file}
+                                onDownload={handleDownload}
                                 onDelete={handleDelete}
-                                showDelete={user?.role !== 'client'}
+                                showDelete={canManageFiles}
                             />
                         );
                     })

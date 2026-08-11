@@ -742,7 +742,7 @@ const Analytics = () => {
             ) : reportType === 'clients' ? (
               filteredClientsForReport.length > 0 ? (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left font-body-sm text-on-surface border-collapse">
+                  <table className="w-full min-w-[700px] text-left font-body-sm text-on-surface border-collapse">
                     <thead className="text-[10px] text-on-surface-variant tracking-widest bg-surface-container-high border-b border-outline-variant/10">
                       <tr>
                         <th className="p-4 font-bold">Client Name</th>
@@ -783,7 +783,7 @@ const Analytics = () => {
             ) : reportType === 'projects' ? (
               filteredProjectsForReport.length > 0 ? (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left font-body-sm text-on-surface border-collapse">
+                  <table className="w-full min-w-[700px] text-left font-body-sm text-on-surface border-collapse">
                     <thead className="text-[10px] text-on-surface-variant tracking-widest bg-surface-container-high border-b border-outline-variant/10">
                       <tr>
                         <th className="p-4 font-bold">Project Name</th>
@@ -832,7 +832,7 @@ const Analytics = () => {
             ) : reportType === 'tasks' ? (
               filteredTasksForReport.length > 0 ? (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left font-body-sm text-on-surface border-collapse">
+                  <table className="w-full min-w-[700px] text-left font-body-sm text-on-surface border-collapse">
                     <thead className="text-[10px] text-on-surface-variant tracking-widest bg-surface-container-high border-b border-outline-variant/10">
                       <tr>
                         <th className="p-4 font-bold">Task Title</th>

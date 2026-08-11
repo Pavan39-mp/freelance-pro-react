@@ -36,8 +36,8 @@ const upload = multer({
 const router = express.Router();
 
 router.post('/upload', protect, authorizeRoles('freelancer'), upload.single('file'), uploadFile);
-router.get('/project/:projectId', protect, authorizeRoles('freelancer'), getProjectFiles);
-router.get('/download/:id', protect, authorizeRoles('freelancer'), downloadFile);
+router.get('/project/:projectId', protect, authorizeRoles('freelancer', 'client'), getProjectFiles);
+router.get('/download/:id', protect, authorizeRoles('freelancer', 'client'), downloadFile);
 router.delete('/:id', protect, authorizeRoles('freelancer'), deleteFile);
 
 export default router;

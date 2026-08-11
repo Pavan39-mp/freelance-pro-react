@@ -168,7 +168,7 @@ const ProjectTasksTab = ({ project }) => {
                                         value={task.status}
                                         disabled={user?.role === 'client'}
                                         onChange={(e) => handleQuickStatusChange(task.id || task._id, e.target.value)}
-                                        className="bg-surface-container border border-outline-variant/30 rounded-lg text-[10px] py-1 px-1.5 focus:ring-1 focus:ring-primary focus:outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="min-w-[9rem] max-w-full bg-surface-container border border-outline-variant/30 rounded-lg text-[10px] py-1 px-1.5 focus:ring-1 focus:ring-primary focus:outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <option value="To Do">To Do</option>
                                         <option value="In Progress">In Progress</option>

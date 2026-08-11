@@ -69,7 +69,7 @@ const Input = ({
                         value={value}
                         onChange={handleInputChange}
                         required={required}
-                        className={`${inputStyle} appearance-none`}
+                        className={`${inputStyle} min-w-0 appearance-none`}
                         {...props}
                     >
                         {placeholder && <option value="" disabled>{placeholder}</option>}
