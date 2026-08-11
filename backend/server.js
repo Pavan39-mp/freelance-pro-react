@@ -29,6 +29,7 @@ import freelancerRoutes from './routes/freelancerRoutes.js';
 import projectRequestRoutes from './routes/projectRequestRoutes.js';
 import projectProposalRoutes from './routes/projectProposalRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
+import intelligenceRoutes from './routes/intelligenceRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -126,6 +127,7 @@ app.use('/api/freelancers', freelancerRoutes);
 app.use('/api/project-requests', projectRequestRoutes);
 app.use('/api/project-proposals', projectProposalRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/intelligence', intelligenceRoutes);
 
 // Health Check Route
 app.get('/api/health', (req, res) => {

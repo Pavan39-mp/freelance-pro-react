@@ -224,7 +224,7 @@ const FreelancerProfile = () => {
                     <Card className="p-8">
                         <h3 className="font-title-lg font-bold text-on-surface mb-4 flex items-center gap-2">
                             <FolderCheck className="w-5 h-5 text-tertiary" />
-                            Completed Projects
+                            Professional Portfolio
                         </h3>
                         {profile.completedProjects?.length > 0 ? (
                             <div className="space-y-4">
@@ -235,17 +235,18 @@ const FreelancerProfile = () => {
                                             <span className="text-body-sm text-on-surface-variant">{new Date(project.completionDate).toLocaleDateString()}</span>
                                         </div>
                                         <p className="mt-1 text-body-sm text-on-surface-variant">{project.category}</p>
+                                        {profile.title && <p className="mt-2 text-body-sm text-on-surface"><span className="text-on-surface-variant">Role:</span> {profile.title}</p>}
                                         {project.description && <p className="mt-3 text-body-sm text-on-surface-variant whitespace-pre-wrap">{project.description}</p>}
-                                        {project.skills?.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{project.skills.map(skill => <span key={skill} className="rounded-lg bg-surface-variant/50 px-2.5 py-1 text-label-sm text-on-surface">{skill}</span>)}</div>}
+                                        {project.skills?.length > 0 && <div className="mt-3"><p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Built using</p><div className="flex flex-wrap gap-2">{project.skills.map(skill => <span key={skill} className="rounded-lg bg-surface-variant/50 px-2.5 py-1 text-label-sm text-on-surface">{skill}</span>)}</div></div>}
                                         <div className="mt-3 flex flex-wrap gap-4 text-body-sm text-on-surface">
-                                            <span>Budget: ₹{Number(project.budget || 0).toLocaleString('en-IN')}</span>
+                                            {Number(project.budget) > 0 && <span>Budget: ₹{Number(project.budget).toLocaleString('en-IN')}</span>}
                                             {project.clientRating && <span className="flex items-center gap-1 text-primary"><Star className="h-4 w-4 fill-current" />{Number(project.clientRating).toFixed(1)}</span>}
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-body-sm text-on-surface-variant italic">No completed projects to showcase yet.</p>
+                            <p className="text-body-sm text-on-surface-variant italic">Completed projects will appear here as this professional portfolio grows.</p>
                         )}
                     </Card>
 

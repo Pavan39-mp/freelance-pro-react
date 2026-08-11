@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import Card from '../../components/ui/Card';
 import AutoResizeTextarea from '../../components/ui/AutoResizeTextarea';
 import { useUser } from '../../context/UserContext';
+import ClientReliabilityCard from '../../components/intelligence/ClientReliabilityCard';
 
 const emptyProfile = {
   fullName: '',
@@ -146,6 +147,7 @@ const ClientProfile = () => {
           </div>
         </form>
       </Card>
+      {user?._id && <ClientReliabilityCard clientId={user._id} />}
     </div>
   );
 };

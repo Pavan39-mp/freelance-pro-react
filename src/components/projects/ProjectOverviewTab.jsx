@@ -8,6 +8,7 @@ import api from '../../services/api';
 import CreateInvoiceForm from '../forms/CreateInvoiceForm';
 import { useNavigate } from 'react-router-dom';
 import AutoResizeTextarea from '../ui/AutoResizeTextarea';
+import ProjectIntelligencePanel from '../intelligence/ProjectIntelligencePanel';
 
 const INVOICE_STATUS_COLORS = {
     'Draft': 'text-on-surface-variant bg-surface-container',
@@ -139,6 +140,8 @@ const ProjectOverviewTab = ({ project }) => {
 
     return (
         <div className="space-y-6 animate-in fade-in">
+            <ProjectIntelligencePanel project={project} />
+
             {/* Editable Fields Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 

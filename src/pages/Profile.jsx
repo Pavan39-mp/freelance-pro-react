@@ -4,6 +4,7 @@ import { Camera, MapPin, Mail, Phone, Briefcase, Code } from 'lucide-react';
 import Card from '../components/ui/Card';
 import AutoResizeTextarea from '../components/ui/AutoResizeTextarea';
 import toast from 'react-hot-toast';
+import PortfolioShowcase from '../components/intelligence/PortfolioShowcase';
 
 const Profile = () => {
   const { user, updateUser } = useUser();
@@ -288,6 +289,7 @@ const Profile = () => {
           </Card>
         </div>
       </div>
+      <PortfolioShowcase />
     </div>
   );
 };

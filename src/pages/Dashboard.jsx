@@ -16,6 +16,7 @@ import { useMeetings } from '../context/MeetingContext';
 import UpcomingMeetingsWidget from '../components/dashboard/UpcomingMeetingsWidget';
 import MeetingDetails from '../components/drawers/MeetingDetails';
 import TaskDetailsDrawer from '../components/ui/TaskDetailsDrawer';
+import ProductivityScoreCard from '../components/intelligence/ProductivityScoreCard';
 
 const Dashboard = () => {
   const { user } = useUser();
@@ -393,6 +394,8 @@ const Dashboard = () => {
           bgColorClass="bg-tertiary-container/30"
         />
       </div>
+
+      <ProductivityScoreCard />
 
       {/* Middle Section */}
       < div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6" >

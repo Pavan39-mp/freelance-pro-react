@@ -6,6 +6,7 @@ import { useProjects } from '../../context/ProjectContext';
 import { useMeetings } from '../../context/MeetingContext';
 import { useInvoices } from '../../context/InvoiceContext';
 import { X, Mail, Phone, MapPin, Building, Calendar, Video, CheckCircle2, ArrowLeft } from 'lucide-react';
+import ClientReliabilityCard from '../intelligence/ClientReliabilityCard';
 
 const ClientDetails = ({ client, isOpen, onClose }) => {
   const [currentView, setCurrentView] = useState('details');
@@ -152,6 +153,8 @@ const ClientDetails = ({ client, isOpen, onClose }) => {
                 </div>
               </div>
             </section>
+
+            <ClientReliabilityCard clientId={client._id || client.id} />
 
             <section>
               <div className="flex justify-between items-center mb-4">

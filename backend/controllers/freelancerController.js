@@ -113,11 +113,11 @@ export const getFreelancerProfile = async (req, res, next) => {
         }
         const [completedProjects, reviews] = await Promise.all([
             Project.find({ createdBy: user._id, status: 'Completed' })
-                .select('name status updatedAt projectRequest')
+                .select('name description budget status updatedAt projectRequest')
                 .populate('projectRequest', 'category skills')
                 .sort({ updatedAt: -1 }),
             FreelancerReview.find({ freelancer: user._id })
-                .select('rating reviewText communicationRating qualityRating deadlineRating createdAt')
+                .select('project rating reviewText communicationRating qualityRating deadlineRating createdAt')
                 .sort({ createdAt: -1 })
         ]);
 
@@ -142,6 +142,9 @@ export const getFreelancerProfile = async (req, res, next) => {
                 title: project.name,
                 category: project.projectRequest?.category || 'Project',
                 skills: project.projectRequest?.skills || [],
+                description: project.description,
+                budget: project.budget,
+                clientRating: reviews.find(review => String(review.project) === String(project._id))?.rating || null,
                 completionDate: project.updatedAt
             }))
         };
