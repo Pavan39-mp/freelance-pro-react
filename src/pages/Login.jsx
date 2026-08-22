@@ -114,9 +114,6 @@ const Login = () => {
           </div>
         </div>
 
-        <div className="relative z-10 text-body-sm text-on-surface-variant">
-          &copy; 2024 FreelancePro. All rights reserved.
-        </div>
       </div>
 
       {/* Right Panel - Login Form */}
