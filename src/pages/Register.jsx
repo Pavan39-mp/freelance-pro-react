@@ -149,7 +149,7 @@ const Register = () => {
     return (
         <div className="min-h-screen bg-background text-on-background font-body-md flex overflow-hidden">
             {/* Left Panel - Branding (Hidden on mobile) */}
-            <div className="hidden lg:flex lg:w-1/2 relative bg-surface-container-low flex-col justify-between p-12 border-r border-outline-variant/10">
+            <div className="hidden lg:block lg:w-1/2 relative bg-surface-container-low p-12 border-r border-outline-variant/10">
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-primary/20 blur-[7.5rem] rounded-full mix-blend-screen"></div>
                     <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-tertiary/20 blur-[7.5rem] rounded-full mix-blend-screen"></div>
@@ -165,7 +165,7 @@ const Register = () => {
                     </div>
                 </div>
 
-                <div className="relative z-10 max-w-md">
+                <div className="absolute z-10 inset-x-12 top-1/2 -translate-y-1/2 max-w-md">
                     <h2 className="font-display-lg text-[2.5rem] leading-tight font-bold text-on-surface mb-6">
                         Elevate your freelance workflow.
                     </h2>
